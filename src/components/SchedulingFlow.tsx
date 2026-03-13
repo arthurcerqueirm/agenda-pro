@@ -5,7 +5,7 @@ import { cn } from '../utils/cn'
 import { supabase } from '../utils/supabase'
 import { useAuth } from '../context/AuthContext'
 import { createGoogleCalendarEvent, CalendarEvent } from '../utils/googleCalendar'
-import { Massage, Profile } from '../types/database'
+import { Service, Profile } from '../types/database'
 import { format, addMinutes } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { BottomSheet } from './BottomSheet'
@@ -16,7 +16,7 @@ interface SchedulingFlowProps {
     preSelectedDate?: Date
 }
 
-const steps = ['Cliente', 'Massagem', 'Confirmar']
+const steps = ['Cliente', 'Serviço', 'Confirmar']
 
 export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preSelectedDate }) => {
     const { session } = useAuth()
@@ -24,11 +24,13 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
+    const hasGoogleToken = !!session?.provider_token || !!sessionStorage.getItem('google_provider_token')
+
     const [clients, setClients] = useState<Profile[]>([])
-    const [massages, setMassages] = useState<Massage[]>([])
+    const [services, setServices] = useState<Service[]>([])
 
     const [selectedClient, setSelectedClient] = useState<Profile | null>(null)
-    const [selectedMassage, setSelectedMassage] = useState<Massage | null>(null)
+    const [selectedService, setSelectedService] = useState<Service | null>(null)
     const [search, setSearch] = useState('')
     const [isAddingClient, setIsAddingClient] = useState(false)
 
@@ -39,13 +41,13 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
     const fetchInitialData = async () => {
         setLoading(true)
         try {
-            const [{ data: clientsData }, { data: massagesData }] = await Promise.all([
+            const [{ data: clientsData }, { data: servicesData }] = await Promise.all([
                 supabase.from('clients').select('*').order('name'),
                 supabase.from('massages').select('*').eq('is_active', true).order('price')
             ])
 
             setClients(clientsData || [])
-            setMassages(massagesData || [])
+            setServices(servicesData || [])
         } catch (err) {
             setError('Erro ao carregar dados. Verifique sua conexão.')
         } finally {
@@ -61,14 +63,14 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
     }
 
     const handleConfirm = async () => {
-        if (!selectedClient || !selectedMassage) return
+        if (!selectedClient || !selectedService) return
 
         setLoading(true)
         setError(null)
 
         try {
             const startTime = preSelectedDate || new Date()
-            const endTime = addMinutes(startTime, selectedMassage.duration_minutes)
+            const endTime = addMinutes(startTime, selectedService.duration_minutes)
 
             console.log('Agendando para:', format(startTime, 'yyyy-MM-dd HH:mm'))
 
@@ -77,7 +79,7 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
                 .from('appointments')
                 .insert({
                     client_id: selectedClient.id,
-                    massage_id: selectedMassage.id,
+                    massage_id: selectedService.id,
                     start_time: startTime.toISOString(),
                     end_time: endTime.toISOString(),
                     status: 'confirmed'
@@ -87,32 +89,39 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
 
             if (dbError) throw dbError
 
-            // 2. Sync with Google Calendar
-            try {
-                const googleEvent: CalendarEvent = {
-                    summary: `Massagem: ${selectedMassage.name} - ${selectedClient.name}`,
-                    description: `Agendamento via Clinica Luciana\nMassagem: ${selectedMassage.name}\nCliente: ${selectedClient.name}`,
-                    start: {
-                        dateTime: startTime.toISOString(),
-                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
-                    },
-                    end: {
-                        dateTime: endTime.toISOString(),
-                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            // 2. Sync with Google Calendar (se conectado)
+            if (hasGoogleToken) {
+                try {
+                    const googleEvent: CalendarEvent = {
+                        summary: `Sessão: ${selectedService.name} - ${selectedClient.name}`,
+                        description: `Agendamento via Sistema\nServiço: ${selectedService.name}\nCliente: ${selectedClient.name}`,
+                        start: {
+                            dateTime: startTime.toISOString(),
+                            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                        },
+                        end: {
+                            dateTime: endTime.toISOString(),
+                            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                        }
                     }
-                }
 
-                const syncResult = await createGoogleCalendarEvent(session, googleEvent)
+                    // Tentar obter token atualizado da session ou sessionStorage
+                    const token = session?.provider_token || sessionStorage.getItem('google_provider_token')
 
-                if (syncResult?.id) {
-                    await supabase
-                        .from('appointments')
-                        .update({ google_event_id: syncResult.id })
-                        .eq('id', appointment.id)
+                    if (token) {
+                        const syncResult = await createGoogleCalendarEvent(token, googleEvent)
+
+                        if (syncResult?.id) {
+                            await supabase
+                                .from('appointments')
+                                .update({ google_event_id: syncResult.id })
+                                .eq('id', appointment.id)
+                        }
+                    }
+                } catch (googleErr) {
+                    console.error('Falha na sincronização com Google Calendar:', googleErr)
+                    // Não travamos o app, o agendamento já está no banco de dados.
                 }
-            } catch (googleErr) {
-                console.error('Falha na sincronização com Google Calendar:', googleErr)
-                // We don't throw here to avoid blocking the app flow if only Google fails
             }
 
             onComplete()
@@ -214,20 +223,20 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
 
                         {step === 1 && (
                             <div className="grid grid-cols-1 gap-4 fade-in">
-                                {massages.map(m => (
+                                {services.map(s => (
                                     <button
-                                        key={m.id}
-                                        onClick={() => { setSelectedMassage(m); setStep(2); }}
+                                        key={s.id}
+                                        onClick={() => { setSelectedService(s); setStep(2); }}
                                         className={cn(
                                             "p-5 rounded-ios-lg text-left transition-all border-2",
-                                            selectedMassage?.id === m.id ? "bg-sage/10 border-sage" : "bg-cream-light border-transparent"
+                                            selectedService?.id === s.id ? "bg-sage/10 border-sage" : "bg-cream-light border-transparent"
                                         )}
                                     >
                                         <div className="flex justify-between items-start mb-2">
-                                            <h4 className="text-lg font-bold text-dark">{m.name}</h4>
-                                            <span className="font-display font-bold text-sage">R$ {m.price}</span>
+                                            <h4 className="text-lg font-bold text-dark">{s.name}</h4>
+                                            <span className="font-display font-bold text-sage">R$ {s.price}</span>
                                         </div>
-                                        <p className="text-sm text-dark/40 font-medium">Duração: {m.duration_minutes} min</p>
+                                        <p className="text-sm text-dark/40 font-medium">Duração: {s.duration_minutes} min</p>
                                     </button>
                                 ))}
                             </div>
@@ -241,8 +250,8 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
                                         <span className="font-bold text-dark">{selectedClient?.name}</span>
                                     </div>
                                     <div className="flex justify-between">
-                                        <span className="text-dark/40 font-bold uppercase text-[10px]">Massagem</span>
-                                        <span className="font-bold text-dark">{selectedMassage?.name}</span>
+                                        <span className="text-dark/40 font-bold uppercase text-[10px]">Serviço</span>
+                                        <span className="font-bold text-dark">{selectedService?.name}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-dark/40 font-bold uppercase text-[10px]">Horário</span>
@@ -252,7 +261,7 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
                                     </div>
                                     <div className="pt-4 border-t border-cream-dark flex justify-between items-center">
                                         <span className="font-display font-bold text-xl">Total</span>
-                                        <span className="text-2xl font-display font-bold text-sage">R$ {selectedMassage?.price}</span>
+                                        <span className="text-2xl font-display font-bold text-sage">R$ {selectedService?.price}</span>
                                     </div>
                                 </div>
                                 <Button
@@ -262,9 +271,15 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
                                 >
                                     Confirmar Agendamento
                                 </Button>
-                                <p className="text-center text-[10px] uppercase font-bold text-dark/20 px-8">
-                                    O agendamento será sincronizado com seu Google Calendar
-                                </p>
+                                {hasGoogleToken ? (
+                                    <p className="text-center text-[10px] uppercase font-bold text-dark/20 px-8">
+                                        O agendamento será sincronizado com seu Google Calendar
+                                    </p>
+                                ) : (
+                                    <p className="text-center text-[10px] uppercase font-bold text-dark/20 px-8">
+                                        Agendamento salvo apenas no banco de dados local
+                                    </p>
+                                )}
                             </div>
                         )}
                     </>

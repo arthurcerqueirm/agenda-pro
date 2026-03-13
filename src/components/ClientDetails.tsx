@@ -29,7 +29,7 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
                 .from('appointments')
                 .select(`
           *,
-          massage:massage_id (name, price, duration_minutes)
+          service:massage_id (name, price, duration_minutes)
         `)
                 .eq('client_id', client.id)
                 .order('start_time', { ascending: false })
@@ -60,8 +60,8 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
 
     // Identify unpaid past appointments
     const unpaidApts = confirmedPastApts.filter(apt => !paidAptIds.has(apt.id))
-    const totalDebt = unpaidApts.reduce((sum, apt) => sum + (apt.massage?.price || 0), 0)
-    const totalPaid = confirmedPastApts.filter(apt => paidAptIds.has(apt.id)).reduce((sum, apt) => sum + (apt.massage?.price || 0), 0)
+    const totalDebt = unpaidApts.reduce((sum, apt) => sum + (apt.service?.price || 0), 0)
+    const totalPaid = confirmedPastApts.filter(apt => paidAptIds.has(apt.id)).reduce((sum, apt) => sum + (apt.service?.price || 0), 0)
 
     const handleWhatsApp = () => {
         const phone = client.phone?.replace(/\D/g, '')
@@ -85,8 +85,8 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
                     <div className="space-y-2">
                         {unpaidApts.map(apt => (
                             <div key={apt.id} className="flex items-center justify-between text-xs font-medium text-rose-dark/60">
-                                <span>{apt.massage?.name} ({format(parseISO(apt.start_time), "dd/MM")})</span>
-                                <span className="font-bold">R$ {apt.massage?.price}</span>
+                                <span>{apt.service?.name} ({format(parseISO(apt.start_time), "dd/MM")})</span>
+                                <span className="font-bold">R$ {apt.service?.price}</span>
                             </div>
                         ))}
                     </div>
@@ -150,7 +150,7 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
                     {upcomingApts.length > 0 && (
                         <div className="space-y-3">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-dark/30 flex items-center">
-                                <CalendarDays size={14} className="mr-2" /> Próximas Massagens
+                                <CalendarDays size={14} className="mr-2" /> Próximas Sessões
                             </h4>
                             <div className="space-y-2">
                                 {upcomingApts.map(apt => (
@@ -160,7 +160,7 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
                                                 <Clock size={18} />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-dark">{apt.massage?.name}</p>
+                                                <p className="text-sm font-bold text-dark">{apt.service?.name}</p>
                                                 <p className="text-[10px] font-medium text-dark/40">
                                                     {format(parseISO(apt.start_time), "dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
                                                 </p>
@@ -196,9 +196,9 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose })
                                                 <p className={cn(
                                                     "text-sm font-bold",
                                                     paidAptIds.has(apt.id) ? "text-dark/60" : "text-dark"
-                                                )}>{apt.massage?.name}</p>
+                                                )}>{apt.service?.name}</p>
                                                 <p className="text-[10px] font-medium text-dark/30">
-                                                    {format(parseISO(apt.start_time), "dd/MM/yyyy", { locale: ptBR })} • R$ {apt.massage?.price}
+                                                    {format(parseISO(apt.start_time), "dd/MM/yyyy", { locale: ptBR })} • R$ {apt.service?.price}
                                                 </p>
                                             </div>
                                         </div>

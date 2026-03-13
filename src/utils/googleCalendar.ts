@@ -1,4 +1,4 @@
-import { Session } from '@supabase/supabase-js'
+// Removed Session import
 
 export interface CalendarEvent {
     summary: string
@@ -13,8 +13,8 @@ export interface CalendarEvent {
     }
 }
 
-export const createGoogleCalendarEvent = async (session: Session | null, event: CalendarEvent) => {
-    if (!session || !session.provider_token) {
+export const createGoogleCalendarEvent = async (token: string, event: CalendarEvent) => {
+    if (!token) {
         console.error('No Google provider token found. User must be logged in with Google and granted calendar permissions.')
         return null
     }
@@ -23,7 +23,7 @@ export const createGoogleCalendarEvent = async (session: Session | null, event: 
         const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${session.provider_token}`,
+                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(event)

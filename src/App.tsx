@@ -8,9 +8,14 @@ import { useAuth } from './context/AuthContext'
 import { Login } from './pages/Login'
 import { Flower2 } from 'lucide-react'
 
+// Puxar as rotas de Super Admin
+import { SuperAdminLogin } from './pages/SuperAdmin/SuperAdminLogin'
+import { SuperAdminDashboard } from './pages/SuperAdmin/SuperAdminDashboard'
+
 type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
 
-function App() {
+// Main App Component encapsulado para lidar com as abas e autenticação comum
+const MainApp = () => {
     const { user, loading } = useAuth()
     const [activeTab, setActiveTab] = useState<Tab>('agenda')
 
@@ -40,6 +45,22 @@ function App() {
             <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
     )
+}
+
+function App() {
+    const [isSuperAdminAuthed, setIsSuperAdminAuthed] = useState(false)
+
+    const isBackoffice = window.location.pathname.startsWith('/backoffice')
+
+    if (isBackoffice) {
+        if (!isSuperAdminAuthed) {
+            return <SuperAdminLogin onLogin={() => setIsSuperAdminAuthed(true)} />
+        }
+        return <SuperAdminDashboard onLogout={() => setIsSuperAdminAuthed(false)} />
+    }
+
+    // Caso não seja /backoffice, roda o app normal SaaS
+    return <MainApp />
 }
 
 export default App

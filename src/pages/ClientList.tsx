@@ -40,7 +40,7 @@ export const ClientList: React.FC = () => {
                     client_id,
                     status,
                     start_time,
-                    massage:massage_id (price)
+                    service:massage_id (price)
                 `)
                 .eq('status', 'confirmed')
                 .lt('start_time', new Date().toISOString())
@@ -60,9 +60,9 @@ export const ClientList: React.FC = () => {
             const clientDebts: Record<string, number> = {}
             appointmentsData.forEach(apt => {
                 if (!paidAptIds.has(apt.id)) {
-                    const price = Array.isArray(apt.massage)
-                        ? Number(apt.massage[0]?.price || 0)
-                        : Number((apt.massage as any)?.price || 0)
+                    const price = Array.isArray(apt.service)
+                        ? Number(apt.service[0]?.price || 0)
+                        : Number((apt.service as any)?.price || 0)
                     clientDebts[apt.client_id] = (clientDebts[apt.client_id] || 0) + price
                 }
             })

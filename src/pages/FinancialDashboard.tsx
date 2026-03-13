@@ -28,7 +28,7 @@ export const FinancialDashboard: React.FC = () => {
                   *,
                   appointment:appointment_id (
                     client:client_id (name),
-                    massage:massage_id (name)
+                    service:massage_id (name)
                   )
                 `)
                 .order('created_at', { ascending: false })
@@ -42,7 +42,7 @@ export const FinancialDashboard: React.FC = () => {
                 .select(`
                   *,
                   client:client_id (name),
-                  massage:massage_id (name, price)
+                  service:massage_id (name, price)
                 `)
                 .lt('start_time', new Date().toISOString())
                 .eq('status', 'confirmed')
@@ -61,7 +61,7 @@ export const FinancialDashboard: React.FC = () => {
                 .reduce((acc, curr) => acc + Number(curr.amount), 0)
 
             const pendingTotal = pending
-                .reduce((acc, curr) => acc + Number(curr.massage?.price || 0), 0)
+                .reduce((acc, curr) => acc + Number(curr.service?.price || 0), 0)
 
             setTotals({ received, pending: pendingTotal })
         } catch (err) {
@@ -151,7 +151,7 @@ export const FinancialDashboard: React.FC = () => {
                                 <div>
                                     <h4 className="font-bold text-dark">{payment.appointment?.client?.name || 'Cliente'}</h4>
                                     <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
-                                        {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('pt-BR') : 'Pendente'} • {payment.method || 'N/A'} • {payment.appointment?.massage?.name}
+                                        {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('pt-BR') : 'Pendente'} • {payment.method || 'N/A'} • {payment.appointment?.service?.name}
                                     </p>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@ export const FinancialDashboard: React.FC = () => {
                                 <div>
                                     <h4 className="font-bold text-dark">{apt.client?.name}</h4>
                                     <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
-                                        Realizado em {new Date(apt.start_time).toLocaleDateString('pt-BR')} • {apt.massage?.name}
+                                        Realizado em {new Date(apt.start_time).toLocaleDateString('pt-BR')} • {apt.service?.name}
                                     </p>
                                 </div>
                             </div>
@@ -203,7 +203,7 @@ export const FinancialDashboard: React.FC = () => {
                     }}
                     onSuccess={fetchFinancialData}
                     appointmentId={selectedAppointment.id}
-                    amount={Number(selectedAppointment.massage?.price || 0)}
+                    amount={Number(selectedAppointment.service?.price || 0)}
                     clientName={selectedAppointment.client?.name}
                 />
             )}

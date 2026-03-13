@@ -1,5 +1,6 @@
 export type Profile = {
     id: string
+    user_id: string
     name: string
     phone: string | null
     email: string | null
@@ -9,8 +10,9 @@ export type Profile = {
     created_at: string
 }
 
-export type Massage = {
+export type Service = {
     id: string
+    user_id: string
     name: string
     description: string | null
     duration_minutes: number
@@ -21,6 +23,7 @@ export type Massage = {
 
 export type Appointment = {
     id: string
+    user_id: string
     client_id: string
     massage_id: string
     start_time: string
@@ -33,6 +36,7 @@ export type Appointment = {
 
 export type Payment = {
     id: string
+    user_id: string
     appointment_id: string
     amount: number
     method: 'pix' | 'card' | 'cash'

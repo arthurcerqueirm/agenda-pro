@@ -62,7 +62,7 @@ export const CalendarView: React.FC = () => {
                 .select(`
           *,
           client:client_id (name, phone),
-          massage:massage_id (name, duration_minutes, price)
+          service:massage_id (name, duration_minutes, price)
         `)
                 .gte('start_time', start.toISOString())
                 .lte('start_time', end.toISOString())
@@ -237,7 +237,7 @@ export const CalendarView: React.FC = () => {
                                                     isSlotStart && (
                                                         <div className="absolute inset-x-1 top-1 bottom-1 bg-sage/20 border-l-4 border-l-sage rounded-xl p-2 z-10 animate-in fade-in zoom-in-95 overflow-hidden">
                                                             <h4 className="text-[10px] font-bold text-sage-dark truncate">{apt.client?.name}</h4>
-                                                            <p className="text-[9px] text-sage/80 font-medium truncate">{apt.massage?.name}</p>
+                                                            <p className="text-[9px] text-sage/80 font-medium truncate">{apt.service?.name}</p>
                                                         </div>
                                                     )
                                                 ) : (
@@ -274,7 +274,7 @@ export const CalendarView: React.FC = () => {
                                                             <h4 className="font-bold text-sage-dark">{apt.client?.name}</h4>
                                                             <span className="text-[10px] bg-sage/20 text-sage-dark px-2 py-0.5 rounded-full">Ocupado</span>
                                                         </div>
-                                                        <p className="text-xs text-sage/70 font-medium">{apt.massage?.name}</p>
+                                                        <p className="text-xs text-sage/70 font-medium">{apt.service?.name}</p>
                                                     </div>
                                                 ) : null
                                             }
@@ -356,10 +356,10 @@ export const CalendarView: React.FC = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <span className="text-[10px] uppercase font-bold text-dark/20 flex items-center">
-                                        <User size={10} className="mr-1" /> Massagem
+                                        <User size={10} className="mr-1" /> Serviço
                                     </span>
                                     <p className="font-bold text-dark truncate">
-                                        {selectedAppointment.massage?.name}
+                                        {selectedAppointment.service?.name}
                                     </p>
                                 </div>
                             </div>
@@ -376,7 +376,7 @@ export const CalendarView: React.FC = () => {
                                 onClick={handleDeleteAppointment}
                             >
                                 <Trash2 size={20} />
-                                <span>Desmarcar Massagem</span>
+                                <span>Desmarcar Serviço</span>
                             </Button>
                         </div>
 

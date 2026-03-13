@@ -3,20 +3,20 @@ import { Plus, Trash2, Edit2, ChevronLeft, Loader2, Save, X, Clock, DollarSign }
 import { supabase } from '../utils/supabase'
 import { Button } from '../components/Button'
 import { cn } from '../utils/cn'
-import { Massage } from '../types/database'
+import { Service } from '../types/database'
 
-interface MassageManagerProps {
+interface ServiceManagerProps {
     onBack: () => void
 }
 
-export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
-    const [massages, setMassages] = useState<Massage[]>([])
+export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
+    const [services, setServices] = useState<Service[]>([])
     const [loading, setLoading] = useState(true)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [isAdding, setIsAdding] = useState(false)
 
     // Form State
-    const [formData, setFormData] = useState<Omit<Massage, 'id' | 'is_active' | 'image_url'>>({
+    const [formData, setFormData] = useState<Omit<Service, 'id' | 'is_active' | 'image_url' | 'user_id'>>({
         name: '',
         description: '',
         duration_minutes: 60,
@@ -24,10 +24,10 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
     })
 
     useEffect(() => {
-        fetchMassages()
+        fetchServices()
     }, [])
 
-    const fetchMassages = async () => {
+    const fetchServices = async () => {
         setLoading(true)
         try {
             const { data, error } = await supabase
@@ -36,9 +36,9 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
                 .eq('is_active', true)
                 .order('created_at')
             if (error) throw error
-            setMassages(data || [])
+            setServices(data || [])
         } catch (err) {
-            console.error('Erro ao buscar massagens:', err)
+            console.error('Erro ao buscar serviços:', err)
         } finally {
             setLoading(false)
         }
@@ -62,16 +62,16 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
             setIsAdding(false)
             setEditingId(null)
             setFormData({ name: '', description: '', duration_minutes: 60, price: 150 })
-            fetchMassages()
+            fetchServices()
         } catch (err) {
-            alert('Erro ao salvar massagem.')
+            alert('Erro ao salvar serviço.')
         } finally {
             setLoading(false)
         }
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir esta massagem?')) return
+        if (!confirm('Tem certeza que deseja excluir este serviço?')) return
         setLoading(true)
         try {
             // Soft delete using is_active
@@ -80,15 +80,15 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
                 .update({ is_active: false })
                 .eq('id', id)
             if (error) throw error
-            fetchMassages()
+            fetchServices()
         } catch (err) {
-            alert('Erro ao excluir massagem.')
+            alert('Erro ao excluir serviço.')
         } finally {
             setLoading(false)
         }
     }
 
-    const startEdit = (m: Massage) => {
+    const startEdit = (m: Service) => {
         setEditingId(m.id)
         setFormData({
             name: m.name,
@@ -110,7 +110,7 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
                 </button>
                 <div>
                     <h2 className="text-2xl font-display font-bold text-dark">Serviços</h2>
-                    <p className="text-dark/40 text-sm font-medium">Gestão de massagens e preços</p>
+                    <p className="text-dark/40 text-sm font-medium">Gestão de serviços e preços</p>
                 </div>
             </header>
 
@@ -140,11 +140,11 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
 
                     <div className="space-y-4">
                         <div className="space-y-1">
-                            <label className="text-[10px] uppercase font-bold text-dark/30 ml-1">Nome da Massagem</label>
+                            <label className="text-[10px] uppercase font-bold text-dark/30 ml-1">Nome do Serviço</label>
                             <input
                                 type="text"
                                 className="ios-input w-full"
-                                placeholder="Ex: Massagem Relaxante"
+                                placeholder="Ex: Avaliação"
                                 value={formData.name}
                                 onChange={e => setFormData({ ...formData, name: e.target.value })}
                             />
@@ -207,14 +207,14 @@ export const MassageManager: React.FC<MassageManagerProps> = ({ onBack }) => {
             )}
 
             <div className="space-y-4 pb-24">
-                <h3 className="font-display font-bold text-lg text-dark/40">Massagens Ativas</h3>
-                {loading && massages.length === 0 ? (
+                <h3 className="font-display font-bold text-lg text-dark/40">Serviços Ativos</h3>
+                {loading && services.length === 0 ? (
                     <div className="py-20 flex justify-center">
                         <Loader2 className="animate-spin text-sage" size={32} />
                     </div>
-                ) : massages.length > 0 ? (
+                ) : services.length > 0 ? (
                     <div className="space-y-3">
-                        {massages.map((m) => (
+                        {services.map((m) => (
                             <div key={m.id} className="ios-card group hover:shadow-ios-hover transition-all border-cream-dark/50">
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">

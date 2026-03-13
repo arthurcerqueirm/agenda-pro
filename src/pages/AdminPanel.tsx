@@ -1,13 +1,15 @@
 import React, { useState } from 'react'
-import { Info, Bell, Shield, LogOut, ChevronRight, Flower2 } from 'lucide-react'
+import { Info, Bell, Shield, LogOut, ChevronRight, Flower2, Calendar } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { MassageManager } from './MassageManager'
+import { ServiceManager } from './ServiceManager'
 
-type AdminView = 'main' | 'massages'
+type AdminView = 'main' | 'services'
 
 export const AdminPanel: React.FC = () => {
-    const { signOut, user } = useAuth()
+    const { signOut, connectGoogleCalendar, session } = useAuth()
     const [currentView, setCurrentView] = useState<AdminView>('main')
+
+    const hasGoogleToken = !!session?.provider_token || !!sessionStorage.getItem('google_provider_token')
 
     const handleLogout = async () => {
         if (confirm('Deseja realmente sair?')) {
@@ -17,9 +19,15 @@ export const AdminPanel: React.FC = () => {
 
     const settingsGroups = [
         {
-            title: 'Configurações da Clínica',
+            title: 'Configurações do Sistema',
             items: [
-                { label: 'Gestão de Massagens', icon: Flower2, color: 'text-sage', onClick: () => setCurrentView('massages') },
+                { label: 'Gestão de Serviços', icon: Flower2, color: 'text-sage', onClick: () => setCurrentView('services') },
+                {
+                    label: hasGoogleToken ? 'Google Calendar Conectado' : 'Conectar Google Calendar',
+                    icon: Calendar,
+                    color: hasGoogleToken ? 'text-sage' : 'text-blue-500',
+                    onClick: connectGoogleCalendar
+                },
                 { label: 'Horário de Funcionamento', icon: Shield, color: 'text-dark/60', onClick: () => { } },
                 { label: 'Notificações Automáticas', icon: Bell, color: 'text-rose', onClick: () => { } },
             ]
@@ -33,8 +41,8 @@ export const AdminPanel: React.FC = () => {
         }
     ]
 
-    if (currentView === 'massages') {
-        return <MassageManager onBack={() => setCurrentView('main')} />
+    if (currentView === 'services') {
+        return <ServiceManager onBack={() => setCurrentView('main')} />
     }
 
     return (
@@ -51,8 +59,8 @@ export const AdminPanel: React.FC = () => {
                         L
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold">Luciana Massage</h3>
-                        <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Administradora</p>
+                        <h3 className="text-xl font-bold">Administrador</h3>
+                        <p className="text-white/60 text-xs font-medium uppercase tracking-wider">Sistema de Agendamentos</p>
                     </div>
                 </div>
             </div>
@@ -82,7 +90,7 @@ export const AdminPanel: React.FC = () => {
 
                 <div className="px-4">
                     <p className="text-center text-[10px] text-dark/20 font-bold uppercase tracking-widest">
-                        Versão 1.0.0 • Clínica Luciana
+                        Versão 1.0.0 • AgendaPro
                     </p>
                 </div>
             </div>

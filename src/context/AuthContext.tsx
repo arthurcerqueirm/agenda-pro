@@ -6,7 +6,9 @@ interface AuthContextType {
     session: Session | null
     user: User | null
     loading: boolean
-    signInWithGoogle: () => Promise<void>
+    signInWithEmail: (email: string, password: string) => Promise<void>
+    signUpWithEmail: (email: string, password: string) => Promise<void>
+    connectGoogleCalendar: () => Promise<void>
     signOut: () => Promise<void>
 }
 
@@ -90,7 +92,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return () => subscription.unsubscribe()
     }, [])
 
-    const signInWithGoogle = async () => {
+    const checkAuthorization = async (email: string) => {
+        const { data: isAuthorized, error } = await supabase.rpc('is_email_authorized', { check_email: email.toLowerCase() })
+
+        if (error) {
+            console.error('Authorization check error:', error)
+            throw new Error('Erro ao validar a autorização do e-mail no servidor.')
+        }
+
+        if (!isAuthorized) {
+            throw new Error('E-mail não está liberado. Sua assinatura pode estar inativa ou pendente.')
+        }
+    }
+
+    const signInWithEmail = async (email: string, password: string) => {
+        await checkAuthorization(email)
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        })
+        if (error) throw error
+    }
+
+    const signUpWithEmail = async (email: string, password: string) => {
+        await checkAuthorization(email)
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        })
+        if (error) throw error
+    }
+
+    const connectGoogleCalendar = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -111,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signInWithGoogle, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, signInWithEmail, signUpWithEmail, connectGoogleCalendar, signOut }}>
             {children}
         </AuthContext.Provider>
     )
