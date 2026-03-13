@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import BottomNav from './components/BottomNav'
 import SideNav from './components/SideNav'
 import { CalendarView } from './pages/CalendarView'
@@ -62,6 +62,17 @@ function App() {
     const isBackoffice = path.startsWith('/backoffice')
     const isUpdatePassword = path.startsWith('/update-password')
     const isApp = path.startsWith('/app')
+
+    // Redirect logged-in users from landing to /app
+    useEffect(() => {
+        if (!isApp && !isBackoffice && !isUpdatePassword) {
+            import('./utils/supabase').then(({ supabase }) => {
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session) window.location.href = '/app'
+                })
+            })
+        }
+    }, [])
 
     if (isUpdatePassword) return <UpdatePassword />
 
