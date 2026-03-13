@@ -22,18 +22,26 @@ import { Button } from '../components/Button'
 import { BottomSheet } from '../components/BottomSheet'
 import { SchedulingFlow } from '../components/SchedulingFlow'
 import { supabase } from '../utils/supabase'
+import { useSettings } from '../context/SettingsContext'
 
-// Business Hours: 08:00 to 20:00
-const HOURS = Array.from({ length: 13 }, (_, i) => 8 + i)
-const DAYS_TO_SHOW = [1, 2, 3, 4, 5, 6] // Monday (1) to Saturday (6)
+// Removing static HOURS, computing inside component now
 
 export const CalendarView: React.FC = () => {
+    const { settings } = useSettings()
+    const HOURS = Array.from(
+        { length: settings.endHour - settings.startHour + 1 },
+        (_, i) => settings.startHour + i
+    )
+
     const [viewDate, setViewDate] = useState(new Date())
     const [selectedDay, setSelectedDay] = useState<Date>(new Date())
     const [isScheduling, setIsScheduling] = useState(false)
     const [isManaging, setIsManaging] = useState(false)
     const [selectedSlot, setSelectedSlot] = useState<Date | null>(null)
     const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null)
+
+    const [touchStart, setTouchStart] = useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
     const [appointments, setAppointments] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
@@ -42,20 +50,25 @@ export const CalendarView: React.FC = () => {
         fetchAppointments()
     }, [viewDate])
 
-    // Update selectedDay if it's no longer in the current week view
+    // Keep viewDate in sync with selectedDay, and auto-scroll the mobile header
     useEffect(() => {
         const weekStart = startOfWeek(viewDate, { locale: ptBR })
         const weekEnd = endOfWeek(viewDate, { locale: ptBR })
         if (!isWithinInterval(selectedDay, { start: weekStart, end: weekEnd })) {
-            setSelectedDay(weekStart)
+            setViewDate(selectedDay)
         }
-    }, [viewDate])
+
+        const element = document.getElementById(`day-${format(selectedDay, 'yyyy-MM-dd')}`)
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+        }
+    }, [selectedDay])
 
     const fetchAppointments = async () => {
-        setLoading(true)
+        if (appointments.length === 0) setLoading(true)
         try {
-            const start = startOfWeek(viewDate, { locale: ptBR })
-            const end = endOfWeek(viewDate, { locale: ptBR })
+            const start = subDays(viewDate, 45)
+            const end = addDays(viewDate, 45)
 
             const { data, error } = await supabase
                 .from('appointments')
@@ -78,7 +91,30 @@ export const CalendarView: React.FC = () => {
     }
 
     const navigate = (direction: 'prev' | 'next') => {
-        setViewDate(direction === 'next' ? addWeeks(viewDate, 1) : subWeeks(viewDate, 1))
+        const newDate = direction === 'next' ? addWeeks(viewDate, 1) : subWeeks(viewDate, 1)
+        setViewDate(newDate)
+        setSelectedDay(newDate)
+    }
+
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null)
+        setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX)
+    }
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return
+        const distance = touchStart - touchEnd
+
+        if (distance > 50) {
+            setSelectedDay(prev => addDays(prev, 1))
+        }
+        if (distance < -50) {
+            setSelectedDay(prev => subDays(prev, 1))
+        }
     }
 
     const handleDeleteAppointment = async () => {
@@ -119,7 +155,7 @@ export const CalendarView: React.FC = () => {
             <header className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                 <div>
                     <h2 className="text-2xl font-display font-bold text-dark">Agenda</h2>
-                    <div className="flex items-center space-x-2 text-sage font-bold">
+                    <div className="flex items-center space-x-2 text-primary font-bold">
                         <span className="capitalize">{format(viewDate, "MMMM 'de' yyyy", { locale: ptBR })}</span>
                     </div>
                 </div>
@@ -136,7 +172,7 @@ export const CalendarView: React.FC = () => {
                             setViewDate(today)
                             setSelectedDay(today)
                         }}
-                        className="px-4 h-10 bg-white shadow-ios rounded-full flex items-center justify-center text-xs font-bold text-sage active:scale-95 transition-transform"
+                        className="px-4 h-10 bg-white shadow-ios rounded-full flex items-center justify-center text-xs font-bold text-primary active:scale-95 transition-transform"
                     >
                         Hoje
                     </button>
@@ -151,14 +187,18 @@ export const CalendarView: React.FC = () => {
 
             {/* Day Selector (Mobile Only) */}
             <div className="flex md:hidden overflow-x-auto pb-2 -mx-4 px-4 space-x-3 scrollbar-hide">
-                {days.map((day) => (
+                {eachDayOfInterval({
+                    start: subDays(new Date(), 30),
+                    end: addDays(new Date(), 90)
+                }).map((day) => (
                     <button
                         key={day.toString()}
+                        id={`day-${format(day, 'yyyy-MM-dd')}`}
                         onClick={() => setSelectedDay(day)}
                         className={cn(
                             "flex flex-col items-center min-w-[64px] py-3 rounded-2xl transition-all",
                             isSameDay(day, selectedDay)
-                                ? "bg-sage text-white shadow-lg scale-105"
+                                ? "bg-primary text-white shadow-lg scale-105"
                                 : "bg-white text-dark/40 shadow-ios"
                         )}
                     >
@@ -169,23 +209,28 @@ export const CalendarView: React.FC = () => {
             </div>
 
             {/* Agenda Grid */}
-            <div className="bg-white rounded-ios-lg shadow-ios overflow-hidden relative">
+            <div
+                className="bg-white rounded-ios-lg shadow-ios overflow-hidden relative"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+            >
                 {loading && (
                     <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
-                        <Loader2 className="animate-spin text-sage" size={32} />
+                        <Loader2 className="animate-spin text-primary" size={32} />
                     </div>
                 )}
 
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse table-fixed min-w-full md:min-w-[800px]">
                         <thead>
-                            <tr className="bg-cream-light/50 border-b border-cream-dark/50">
+                            <tr className="bg-surface-light/50 border-b border-surface-neutral/50">
                                 <th className="w-16 py-4 md:py-3"></th>
                                 {/* Desktop Headers */}
                                 {days.map((day) => (
                                     <th key={`head-${day.toString()}`} className={cn(
                                         "py-3 px-1 text-center hidden md:table-cell",
-                                        isToday(day) ? "bg-sage/10 text-sage" : "text-dark/40"
+                                        isToday(day) ? "bg-primary/10 text-primary" : "text-dark/40"
                                     )}>
                                         <div className="flex flex-col items-center py-1">
                                             <span className="text-[10px] font-bold uppercase">{format(day, 'eee', { locale: ptBR })}</span>
@@ -195,7 +240,7 @@ export const CalendarView: React.FC = () => {
                                 ))}
                                 {/* Mobile Header */}
                                 <th className="py-3 px-4 text-left md:hidden">
-                                    <div className="flex items-center space-x-2 text-sage">
+                                    <div className="flex items-center space-x-2 text-primary">
                                         <CalendarDays size={16} />
                                         <span className="text-sm font-bold capitalize">
                                             {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
@@ -204,7 +249,7 @@ export const CalendarView: React.FC = () => {
                                 </th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-cream-dark/20">
+                        <tbody key={selectedDay.toISOString()} className="divide-y divide-surface-neutral/20 fade-in">
                             {HOURS.map((hour) => (
                                 <tr key={hour} className="group">
                                     <td className="text-center py-6 md:py-4 align-top">
@@ -220,8 +265,8 @@ export const CalendarView: React.FC = () => {
                                             <td
                                                 key={`desktop-${day}-${hour}`}
                                                 className={cn(
-                                                    "relative p-1 border-r border-cream-dark/10 last:border-0 h-24 md:h-16 hidden md:table-cell transition-colors",
-                                                    !apt && "hover:bg-cream-light/50 cursor-pointer"
+                                                    "relative p-1 border-r border-surface-neutral/10 last:border-0 h-24 md:h-16 hidden md:table-cell transition-colors",
+                                                    !apt && "hover:bg-surface-light/50 cursor-pointer"
                                                 )}
                                                 onClick={() => {
                                                     if (apt) {
@@ -235,14 +280,14 @@ export const CalendarView: React.FC = () => {
                                             >
                                                 {apt ? (
                                                     isSlotStart && (
-                                                        <div className="absolute inset-x-1 top-1 bottom-1 bg-sage/20 border-l-4 border-l-sage rounded-xl p-2 z-10 animate-in fade-in zoom-in-95 overflow-hidden">
-                                                            <h4 className="text-[10px] font-bold text-sage-dark truncate">{apt.client?.name}</h4>
-                                                            <p className="text-[9px] text-sage/80 font-medium truncate">{apt.service?.name}</p>
+                                                        <div className="absolute inset-x-1 top-1 bottom-1 bg-primary/20 border-l-4 border-l-primary rounded-xl p-2 z-10 animate-in fade-in zoom-in-95 overflow-hidden">
+                                                            <h4 className="text-[10px] font-bold text-primary-dark truncate">{apt.client?.name}</h4>
+                                                            <p className="text-[9px] text-primary/80 font-medium truncate">{apt.service?.name}</p>
                                                         </div>
                                                     )
                                                 ) : (
                                                     <div className="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                        <Plus size={14} className="text-sage" />
+                                                        <Plus size={14} className="text-primary" />
                                                     </div>
                                                 )}
                                             </td>
@@ -251,7 +296,7 @@ export const CalendarView: React.FC = () => {
 
                                     {/* Mobile Slot */}
                                     <td
-                                        className="relative p-2 md:hidden h-24 transition-colors active:bg-cream-light/50"
+                                        className="relative p-2 md:hidden h-24 transition-colors active:bg-surface-light/50"
                                         onClick={() => {
                                             const apt = getAppointmentForSlot(selectedDay, hour)
                                             if (apt) {
@@ -269,18 +314,18 @@ export const CalendarView: React.FC = () => {
 
                                             if (apt) {
                                                 return isSlotStart ? (
-                                                    <div className="absolute inset-2 bg-sage/10 border-l-4 border-l-sage rounded-2xl p-3 shadow-sm flex flex-col justify-center">
+                                                    <div className="absolute inset-2 bg-primary/10 border-l-4 border-l-primary rounded-2xl p-3 shadow-sm flex flex-col justify-center">
                                                         <div className="flex items-center justify-between mb-1">
-                                                            <h4 className="font-bold text-sage-dark">{apt.client?.name}</h4>
-                                                            <span className="text-[10px] bg-sage/20 text-sage-dark px-2 py-0.5 rounded-full">Ocupado</span>
+                                                            <h4 className="font-bold text-primary-dark">{apt.client?.name}</h4>
+                                                            <span className="text-[10px] bg-primary/20 text-primary-dark px-2 py-0.5 rounded-full">Ocupado</span>
                                                         </div>
-                                                        <p className="text-xs text-sage/70 font-medium">{apt.service?.name}</p>
+                                                        <p className="text-xs text-primary/70 font-medium">{apt.service?.name}</p>
                                                     </div>
                                                 ) : null
                                             }
 
                                             return (
-                                                <div className="h-full w-full border-2 border-dashed border-cream-dark/30 rounded-2xl flex items-center justify-center">
+                                                <div className="h-full w-full border-2 border-dashed border-surface-neutral/30 rounded-2xl flex items-center justify-center">
                                                     <Plus size={20} className="text-dark/10" />
                                                 </div>
                                             )
@@ -299,7 +344,7 @@ export const CalendarView: React.FC = () => {
                     setSelectedSlot(null)
                     setIsScheduling(true)
                 }}
-                className="fixed bottom-24 right-6 w-16 h-16 bg-sage text-white rounded-full shadow-2xl flex items-center justify-center active:scale-95 transition-transform z-40"
+                className="fixed bottom-24 right-6 w-16 h-16 bg-primary text-white rounded-full shadow-2xl flex items-center justify-center active:scale-95 transition-transform z-40"
             >
                 <Plus size={32} />
             </button>
@@ -334,9 +379,9 @@ export const CalendarView: React.FC = () => {
             >
                 {selectedAppointment && (
                     <div className="space-y-6">
-                        <div className="ios-card bg-cream-light border-2 border-sage/20 space-y-4">
+                        <div className="ios-card bg-surface-light border-2 border-primary/20 space-y-4">
                             <div className="flex items-center space-x-4">
-                                <div className="w-16 h-16 bg-sage text-white rounded-2xl flex items-center justify-center font-display font-bold text-2xl uppercase">
+                                <div className="w-16 h-16 bg-primary text-white rounded-2xl flex items-center justify-center font-display font-bold text-2xl uppercase">
                                     {selectedAppointment.client?.name[0]}
                                 </div>
                                 <div>
@@ -372,7 +417,7 @@ export const CalendarView: React.FC = () => {
                             </Button>
                             <Button
                                 variant="ghost"
-                                className="h-14 text-rose-dark hover:bg-rose/10 space-x-2"
+                                className="h-14 text-danger-dark hover:bg-danger/10 space-x-2"
                                 onClick={handleDeleteAppointment}
                             >
                                 <Trash2 size={20} />

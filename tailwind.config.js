@@ -7,22 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream: {
-          light: '#FDFBF7',
-          DEFAULT: '#F9F6F0',
-          dark: '#F2EDDF',
+        primary: {
+          light: '#B5D4F4',   // Avatares
+          DEFAULT: '#1A73E8', // Cor primária
+          dark: '#1565C0',    // Admin header
         },
-        sage: {
-          light: '#A7BDAA',
-          DEFAULT: '#8DAA91',
-          dark: '#738C76',
+        accent: {
+          bg: '#F0FAF8',      // Bg teal
+          DEFAULT: '#0D9E8A', // Em dia, sucesso
         },
-        rose: {
-          light: '#ECCACA',
-          DEFAULT: '#E5B7B7',
-          dark: '#D19A9A',
+        surface: {
+          light: '#E8F4FD',   // Bg light
+          DEFAULT: '#F8FAFB', // Fundo cards
+          neutral: '#F5F5F5', // Fundo alternativo
         },
-        dark: '#2D2D2D',
+        danger: {
+          light: '#FEE2E2',   // Fundo de erro
+          DEFAULT: '#E55B5B', // Cancelar / Alerta
+          dark: '#DC2626',    // Hover de alerta
+        },
+        warning: {
+          DEFAULT: '#F59E0B', // Inadimplente
+        },
+        dark: {
+          DEFAULT: '#1A1A2E',
+          muted: '#6B7280',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

@@ -31,27 +31,27 @@
   }
 
   .ios-button-primary {
-    @apply ios-button bg-sage text-white shadow-ios hover:bg-sage-dark;
+    @apply ios-button bg-primary text-white shadow-ios hover:bg-primary-dark;
   }
 
   .ios-button-secondary {
-    @apply ios-button bg-rose text-white shadow-ios hover:bg-rose-dark;
+    @apply ios-button bg-danger text-white shadow-ios hover:bg-danger-dark;
   }
 
   .ios-button-ghost {
-    @apply ios-button bg-transparent text-sage hover:bg-sage/10;
+    @apply ios-button bg-transparent text-primary hover:bg-primary/10;
   }
 
   .ios-card {
-    @apply bg-white p-5 rounded-ios-lg shadow-ios border border-cream-dark/50;
+    @apply bg-white p-5 rounded-ios-lg shadow-ios border border-surface-neutral/50;
   }
 
   .ios-input {
-    @apply h-14 px-4 bg-cream-light border-none rounded-ios focus:ring-2 focus:ring-sage outline-none transition-all duration-200;
+    @apply h-14 px-4 bg-surface-light border-none rounded-ios focus:ring-2 focus:ring-primary outline-none transition-all duration-200;
   }
 
   .ios-bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-t border-cream-dark flex items-center justify-around px-4 z-50;
+    @apply fixed bottom-0 left-0 right-0 h-20 bg-white/80 backdrop-blur-xl border-t border-surface-neutral flex items-center justify-around px-4 z-50;
     padding-bottom: env(safe-area-inset-bottom);
   }
 }

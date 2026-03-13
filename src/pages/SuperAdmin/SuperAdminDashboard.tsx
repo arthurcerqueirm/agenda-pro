@@ -114,19 +114,19 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
     }
 
     return (
-        <div className="min-h-screen bg-rose-light/10 pb-24 px-4 pt-6">
+        <div className="min-h-screen bg-danger-light/10 pb-24 px-4 pt-6">
             <main className="max-w-2xl mx-auto space-y-6">
-                <header className="flex items-center justify-between pb-4 border-b border-rose/10">
+                <header className="flex items-center justify-between pb-4 border-b border-danger/10">
                     <div>
                         <h1 className="text-2xl font-display font-bold text-dark flex items-center">
-                            <Users className="mr-3 text-rose-dark" size={24} />
+                            <Users className="mr-3 text-danger-dark" size={24} />
                             Gestão de Locatários
                         </h1>
                         <p className="text-dark/40 text-sm mt-1">SaaS Backoffice Global</p>
                     </div>
                     <button
                         onClick={onLogout}
-                        className="w-10 h-10 bg-white shadow-ios rounded-full flex items-center justify-center text-dark/40 hover:text-rose-dark active:scale-90 transition-all"
+                        className="w-10 h-10 bg-white shadow-ios rounded-full flex items-center justify-center text-dark/40 hover:text-danger-dark active:scale-90 transition-all"
                         title="Sair"
                     >
                         <ArrowLeft size={20} />
@@ -134,7 +134,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                 </header>
 
                 {error && (
-                    <div className="bg-rose/10 text-rose-dark p-4 rounded-xl text-center font-bold text-sm">
+                    <div className="bg-danger/10 text-danger-dark p-4 rounded-xl text-center font-bold text-sm">
                         {error}
                     </div>
                 )}
@@ -142,14 +142,14 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                 {/* Bloco de Adicionar */}
                 {!isAdding ? (
                     <Button
-                        className="w-full h-14 bg-rose-dark hover:bg-rose-dark/90 text-white shadow-lg space-x-2"
+                        className="w-full h-14 bg-danger-dark hover:bg-danger-dark/90 text-white shadow-lg space-x-2"
                         onClick={() => setIsAdding(true)}
                     >
                         <Plus size={20} />
                         <span>Criar Nova Clínica / Usuário</span>
                     </Button>
                 ) : (
-                    <div className="ios-card bg-white border-2 border-rose/20 animate-in fade-in zoom-in-95">
+                    <div className="ios-card bg-white border-2 border-danger/20 animate-in fade-in zoom-in-95">
                         <form onSubmit={handleCreateUser} className="space-y-4">
                             <h3 className="font-bold text-lg text-dark">Dados de Acesso</h3>
 
@@ -160,7 +160,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                     <input
                                         type="email"
                                         required
-                                        className="ios-input w-full pl-12 bg-cream-light/50"
+                                        className="ios-input w-full pl-12 bg-surface-light/50"
                                         placeholder="clinica@exemplo.com"
                                         value={form.email}
                                         onChange={e => setForm({ ...form, email: e.target.value })}
@@ -176,7 +176,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                         type="password"
                                         required
                                         minLength={6}
-                                        className="ios-input w-full pl-12 bg-cream-light/50"
+                                        className="ios-input w-full pl-12 bg-surface-light/50"
                                         placeholder="Min 6 caracteres"
                                         value={form.password}
                                         onChange={e => setForm({ ...form, password: e.target.value })}
@@ -188,7 +188,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                 <Button
                                     type="button"
                                     variant="secondary"
-                                    className="h-12 border-rose-dark/20 text-rose-dark"
+                                    className="h-12 border-danger-dark/20 text-danger-dark"
                                     onClick={() => { setIsAdding(false); setForm({ email: '', password: '' }) }}
                                     disabled={actionLoading}
                                 >
@@ -196,7 +196,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                 </Button>
                                 <Button
                                     type="submit"
-                                    className="h-12 bg-rose-dark hover:bg-rose-dark/90 text-white"
+                                    className="h-12 bg-danger-dark hover:bg-danger-dark/90 text-white"
                                     loading={actionLoading}
                                 >
                                     Criar Acesso
@@ -210,29 +210,29 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                 <div className="space-y-4">
                     <h3 className="font-display font-bold text-lg text-dark flex items-center justify-between">
                         Contas Ativas no Banco
-                        {loading && <Loader2 className="animate-spin text-rose-dark" size={20} />}
+                        {loading && <Loader2 className="animate-spin text-danger-dark" size={20} />}
                     </h3>
 
                     {loading && users.length === 0 ? (
                         <div className="py-20 flex justify-center">
-                            <Loader2 className="animate-spin text-rose-dark/20" size={40} />
+                            <Loader2 className="animate-spin text-danger-dark/20" size={40} />
                         </div>
                     ) : users.length === 0 ? (
-                        <div className="text-center py-16 bg-white/50 rounded-2xl border-2 border-dashed border-rose/20 text-dark/30 italic">
+                        <div className="text-center py-16 bg-white/50 rounded-2xl border-2 border-dashed border-danger/20 text-dark/30 italic">
                             Nenhum tenant encontrado.
                         </div>
                     ) : (
                         <div className="space-y-3">
                             {users.map((u) => (
-                                <div key={u.id} className="ios-card bg-white flex flex-col sm:flex-row sm:items-center justify-between group hover:border-rose/30 transition-colors">
+                                <div key={u.id} className="ios-card bg-white flex flex-col sm:flex-row sm:items-center justify-between group hover:border-danger/30 transition-colors">
                                     <div className="mb-4 sm:mb-0">
                                         <div className="flex items-center space-x-2">
-                                            <div className="w-10 h-10 bg-rose-dark/10 text-rose-dark rounded-xl flex items-center justify-center font-bold uppercase">
+                                            <div className="w-10 h-10 bg-danger-dark/10 text-danger-dark rounded-xl flex items-center justify-center font-bold uppercase">
                                                 {u.email?.[0] || '?'}
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-dark">{u.email}</h4>
-                                                <span className="text-[10px] font-mono text-dark/30 break-all bg-cream-light px-2 py-0.5 rounded">
+                                                <span className="text-[10px] font-mono text-dark/30 break-all bg-surface-light px-2 py-0.5 rounded">
                                                     ID: {u.id}
                                                 </span>
                                             </div>
@@ -244,14 +244,14 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                                 {u.paymentStatus === 'active' ? 'Renovado/Pago' : 'Situação'}
                                             </span>
                                             {u.paymentStatus === 'active' ? (
-                                                <div className="flex items-center justify-end space-x-1 text-sage font-bold mt-0.5" title="Acesso Liberado">
+                                                <div className="flex items-center justify-end space-x-1 text-primary font-bold mt-0.5" title="Acesso Liberado">
                                                     <CheckCircle2 size={13} />
                                                     <span className="text-xs">
                                                         {u.paymentDate ? new Date(u.paymentDate).toLocaleDateString('pt-BR') : 'Ativo'}
                                                     </span>
                                                 </div>
                                             ) : (
-                                                <div className="flex items-center justify-end space-x-1 text-rose-dark font-bold mt-0.5" title="Acesso Bloqueado">
+                                                <div className="flex items-center justify-end space-x-1 text-danger-dark font-bold mt-0.5" title="Acesso Bloqueado">
                                                     <XCircle size={13} />
                                                     <span className="text-xs">Pendente</span>
                                                 </div>
@@ -266,7 +266,7 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                         <button
                                             onClick={() => handleDeleteUser(u.id, u.email)}
                                             disabled={actionLoading}
-                                            className="w-10 h-10 ml-2 bg-rose-light/30 text-rose-dark rounded-xl flex items-center justify-center hover:bg-rose-dark hover:text-white active:scale-95 transition-all disabled:opacity-50"
+                                            className="w-10 h-10 ml-2 bg-danger-light/30 text-danger-dark rounded-xl flex items-center justify-center hover:bg-danger-dark hover:text-white active:scale-95 transition-all disabled:opacity-50"
                                             title="Deletar Conta Permanentemente"
                                         >
                                             <Trash2 size={18} />

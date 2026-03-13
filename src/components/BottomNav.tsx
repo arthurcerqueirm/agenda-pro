@@ -23,12 +23,12 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
                     onClick={() => onTabChange(id)}
                     className={cn(
                         "flex flex-col items-center justify-center transition-all duration-200 w-16 h-full",
-                        activeTab === id ? "text-sage" : "text-dark/40"
+                        activeTab === id ? "text-primary" : "text-dark/40"
                     )}
                 >
                     <div className={cn(
                         "p-1 rounded-xl transition-colors duration-200",
-                        activeTab === id ? "bg-sage/10" : "bg-transparent"
+                        activeTab === id ? "bg-primary/10" : "bg-transparent"
                     )}>
                         <Icon size={24} strokeWidth={activeTab === id ? 2.5 : 2} />
                     </div>

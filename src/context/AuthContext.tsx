@@ -7,7 +7,9 @@ interface AuthContextType {
     user: User | null
     loading: boolean
     signInWithEmail: (email: string, password: string) => Promise<void>
-    signUpWithEmail: (email: string, password: string) => Promise<void>
+    sendPasswordResetEmail: (email: string) => Promise<void>
+    updateProfileName: (name: string) => Promise<void>
+    updateUserPassword: (password: string) => Promise<void>
     connectGoogleCalendar: () => Promise<void>
     signOut: () => Promise<void>
 }
@@ -114,12 +116,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error
     }
 
-    const signUpWithEmail = async (email: string, password: string) => {
+    const sendPasswordResetEmail = async (email: string) => {
         await checkAuthorization(email)
-        const { error } = await supabase.auth.signUp({
-            email,
-            password,
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/update-password`,
         })
+        if (error) throw error
+    }
+
+    const updateProfileName = async (name: string) => {
+        const { error } = await supabase.auth.updateUser({
+            data: { full_name: name }
+        })
+        if (error) throw error
+    }
+
+    const updateUserPassword = async (password: string) => {
+        const { error } = await supabase.auth.updateUser({ password })
         if (error) throw error
     }
 
@@ -144,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signInWithEmail, signUpWithEmail, connectGoogleCalendar, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, signInWithEmail, sendPasswordResetEmail, updateProfileName, updateUserPassword, connectGoogleCalendar, signOut }}>
             {children}
         </AuthContext.Provider>
     )

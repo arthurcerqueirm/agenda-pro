@@ -101,7 +101,7 @@ export const ClientList: React.FC = () => {
                 </div>
                 <button
                     onClick={() => setIsAddingClient(true)}
-                    className="w-12 h-12 bg-sage/10 rounded-full flex items-center justify-center text-sage active:scale-95 transition-transform"
+                    className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary active:scale-95 transition-transform"
                 >
                     <UserPlus size={24} />
                 </button>
@@ -131,7 +131,7 @@ export const ClientList: React.FC = () => {
                             onClick={() => setFilter(f.id as any)}
                             className={cn(
                                 "px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all",
-                                filter === f.id ? "bg-dark text-white shadow-md shadow-dark/20" : "bg-white text-dark/40 border border-cream-dark"
+                                filter === f.id ? "bg-dark text-white shadow-md shadow-dark/20" : "bg-white text-dark/40 border border-surface-neutral"
                             )}
                         >
                             {f.label}
@@ -143,7 +143,7 @@ export const ClientList: React.FC = () => {
             {/* Client Cards */}
             <div className="space-y-3 pb-24">
                 {loading ? (
-                    <div className="py-20 flex flex-col items-center justify-center space-y-4 text-sage opacity-40">
+                    <div className="py-20 flex flex-col items-center justify-center space-y-4 text-primary opacity-40">
                         <Loader2 className="animate-spin" size={32} />
                         <p className="font-medium">Buscando clientes...</p>
                     </div>
@@ -157,7 +157,7 @@ export const ClientList: React.FC = () => {
                         }}
                     >
                         <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 bg-rose-light rounded-2xl flex items-center justify-center font-display font-bold text-xl text-rose-dark shadow-inner uppercase">
+                            <div className="w-14 h-14 bg-danger-light rounded-2xl flex items-center justify-center font-display font-bold text-xl text-danger-dark shadow-inner uppercase">
                                 {client.name[0]}
                             </div>
                             <div className="flex-1">
@@ -165,8 +165,8 @@ export const ClientList: React.FC = () => {
                                     <div className="flex items-center space-x-2">
                                         <h4 className="font-bold text-dark text-lg leading-none mb-1">{client.name}</h4>
                                         {client.pending_amount > 0 && (
-                                            <div className="flex items-center bg-rose/10 text-rose-dark px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
-                                                <div className="w-1.5 h-1.5 bg-rose rounded-full mr-1" />
+                                            <div className="flex items-center bg-danger/10 text-danger-dark px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
+                                                <div className="w-1.5 h-1.5 bg-danger rounded-full mr-1" />
                                                 PENDENTE
                                             </div>
                                         )}
@@ -182,18 +182,18 @@ export const ClientList: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="mt-4 pt-4 border-t border-cream-dark/50 flex items-center justify-between">
+                        <div className="mt-4 pt-4 border-t border-surface-neutral/50 flex items-center justify-between">
                             <div className="flex flex-col">
                                 <span className="text-[10px] uppercase font-bold text-dark/20">Status financeiro</span>
                                 <span className={cn(
                                     "text-xs font-bold",
-                                    client.pending_amount > 0 ? "text-rose-dark" : "text-sage"
+                                    client.pending_amount > 0 ? "text-danger-dark" : "text-primary"
                                 )}>
                                     {client.pending_amount > 0 ? `Deve R$ ${client.pending_amount}` : 'Em dia'}
                                 </span>
                             </div>
                             <div className="flex space-x-2">
-                                <Button variant="ghost" className="h-9 px-4 text-xs bg-sage/5 hover:bg-sage/10">
+                                <Button variant="ghost" className="h-9 px-4 text-xs bg-primary/5 hover:bg-primary/10">
                                     Ver Perfil
                                 </Button>
                             </div>
@@ -201,7 +201,7 @@ export const ClientList: React.FC = () => {
                     </div>
                 )) : (
                     <div className="py-20 text-center space-y-4 opacity-40">
-                        <div className="w-16 h-16 bg-cream-dark rounded-full flex items-center justify-center mx-auto">
+                        <div className="w-16 h-16 bg-surface-neutral rounded-full flex items-center justify-center mx-auto">
                             <Search size={32} />
                         </div>
                         <p className="font-medium italic">Nenhuma cliente encontrada</p>
@@ -232,6 +232,11 @@ export const ClientList: React.FC = () => {
                     <ClientDetails
                         client={selectedClient}
                         onClose={() => setIsViewingDetails(false)}
+                        onDelete={() => {
+                            setIsViewingDetails(false)
+                            setSelectedClient(null)
+                            fetchClients()
+                        }}
                     />
                 )}
             </BottomSheet>

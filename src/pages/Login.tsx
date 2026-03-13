@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/Button'
-import { Flower2, Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react'
+import { Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react'
 
 export const Login: React.FC = () => {
-    const { signInWithEmail, signUpWithEmail, loading } = useAuth()
+    const { signInWithEmail, sendPasswordResetEmail, loading } = useAuth()
     const [isLogin, setIsLogin] = useState(true)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -20,8 +20,8 @@ export const Login: React.FC = () => {
             if (isLogin) {
                 await signInWithEmail(email, password)
             } else {
-                await signUpWithEmail(email, password)
-                setLocalError('Conta criada com sucesso! Verifique seu e-mail caso seja necessário, ou tente fazer o login.')
+                await sendPasswordResetEmail(email)
+                setLocalError('E-mail enviado com sucesso! Verifique sua caixa de entrada para definir a sua senha.')
                 setIsLogin(true)
             }
         } catch (error: any) {
@@ -33,57 +33,55 @@ export const Login: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-cream-light flex flex-col items-center justify-center p-8 text-center bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-rose/5 via-cream-light to-sage/5">
-            <div className="w-24 h-24 bg-sage/10 rounded-3xl flex items-center justify-center text-sage mb-8 animate-pulse">
-                <Flower2 size={48} strokeWidth={1.5} />
-            </div>
-
-            <div className="space-y-3 mb-12">
-                <h1 className="text-4xl font-display font-bold text-dark tracking-tight">AgendaPro</h1>
-                <p className="text-dark/40 font-medium text-lg leading-relaxed max-w-[280px]">
+        <div className="min-h-screen bg-surface-light flex flex-col items-center justify-center p-4 sm:p-8 text-center bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-danger/5 via-surface-light to-primary/5">
+            <div className="flex flex-col items-center mb-6 mt-[-4rem]">
+                <img src="/logo.png" alt="Agenda Pro" className="w-[18rem] sm:w-[22rem] md:w-[26rem] h-auto mb-2 object-contain filter drop-shadow-lg hover:scale-[1.02] transition-transform" />
+                <p className="text-dark/50 font-medium text-base sm:text-lg leading-relaxed max-w-[300px]">
                     Gestão inteligente para impulsionar o seu negócio.
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
+            <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-5">
                 {localError && (
-                    <div className={`p-4 rounded-ios-lg flex items-center space-x-3 text-left animate-in fade-in slide-in-from-top-2 ${localError.includes('sucesso') ? 'bg-sage/10 text-sage' : 'bg-red-50 text-red-600'}`}>
+                    <div className={`p-4 rounded-ios-lg flex items-center space-x-3 text-left animate-in fade-in slide-in-from-top-2 ${localError.includes('sucesso') ? 'bg-primary/10 text-primary' : 'bg-red-50 text-red-600'}`}>
                         <AlertCircle size={20} className="flex-shrink-0" />
                         <p className="text-sm font-bold">{localError}</p>
                     </div>
                 )}
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                     <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/30" size={20} />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/30" size={22} />
                         <input
                             type="email"
                             required
                             placeholder="Seu e-mail"
-                            className="w-full h-14 pl-12 pr-4 bg-white/50 border-2 border-transparent focus:border-sage/30 rounded-2xl outline-none transition-all placeholder:text-dark/30 font-medium text-dark"
+                            className="w-full h-16 pl-12 pr-4 bg-white/60 border-2 border-transparent focus:border-primary/40 rounded-2xl outline-none transition-all placeholder:text-dark/30 font-medium text-dark text-lg shadow-sm"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
-                    <div className="relative">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/30" size={20} />
-                        <input
-                            type="password"
-                            required
-                            placeholder="Sua senha"
-                            className="w-full h-14 pl-12 pr-4 bg-white/50 border-2 border-transparent focus:border-sage/30 rounded-2xl outline-none transition-all placeholder:text-dark/30 font-medium text-dark"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
+                    {isLogin && (
+                        <div className="relative fade-in">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/30" size={22} />
+                            <input
+                                type="password"
+                                required
+                                placeholder="Sua senha"
+                                className="w-full h-16 pl-12 pr-4 bg-white/60 border-2 border-transparent focus:border-primary/40 rounded-2xl outline-none transition-all placeholder:text-dark/30 font-medium text-dark text-lg shadow-sm"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    )}
                 </div>
 
                 <Button
                     type="submit"
                     loading={loading || isLoading}
-                    className="w-full h-16 text-lg shadow-xl shadow-sage/20 mt-6 flex items-center justify-center"
+                    className="w-full h-16 text-lg shadow-xl shadow-primary/20 mt-6 flex items-center justify-center"
                 >
-                    {isLogin ? 'Entrar' : 'Criar Conta'}
+                    {isLogin ? 'Entrar' : 'Receber Link Seguro'}
                     {!loading && !isLoading && <ArrowRight size={20} className="ml-2" />}
                 </Button>
 
@@ -91,14 +89,14 @@ export const Login: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setIsLogin(!isLogin)}
-                        className="text-sm font-bold text-sage hover:text-sage-dark transition-colors"
+                        className="text-sm font-bold text-primary hover:text-primary-dark transition-colors"
                     >
-                        {isLogin ? 'Não tem uma conta? Crie agora' : 'Já tem uma conta? Entrar'}
+                        {isLogin ? 'Primeiro acesso? Crie sua senha' : 'Já tem uma senha? Fazer login'}
                     </button>
                 </div>
 
                 <p className="text-[10px] uppercase font-bold text-dark/20 tracking-widest px-8 pt-4">
-                    Ao {isLogin ? 'entrar' : 'criar conta'} você concorda com nossos termos e políticas
+                    Seu acesso é verificado por e-mail pelo nosso sistema
                 </p>
             </form>
 

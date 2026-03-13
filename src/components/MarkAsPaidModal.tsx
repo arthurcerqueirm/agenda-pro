@@ -68,7 +68,7 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
             <div className="relative w-full max-w-md bg-white rounded-t-[32px] sm:rounded-[32px] p-8 shadow-2xl animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-8 duration-500">
                 <button
                     onClick={onClose}
-                    className="absolute right-6 top-6 w-10 h-10 bg-cream-light rounded-full flex items-center justify-center text-dark/20 hover:text-dark transition-colors"
+                    className="absolute right-6 top-6 w-10 h-10 bg-surface-light rounded-full flex items-center justify-center text-dark/20 hover:text-dark transition-colors"
                 >
                     <X size={20} />
                 </button>
@@ -76,7 +76,7 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
                 <div className="mb-8">
                     <h3 className="text-2xl font-display font-bold text-dark mb-2">Registrar Pagamento</h3>
                     <p className="text-dark/40 font-medium">
-                        Confirmar recebimento de <span className="text-sage-dark font-bold">R$ {amount}</span> para <span className="text-dark font-bold">{clientName}</span>
+                        Confirmar recebimento de <span className="text-primary-dark font-bold">R$ {amount}</span> para <span className="text-dark font-bold">{clientName}</span>
                     </p>
                 </div>
 
@@ -88,26 +88,26 @@ export const MarkAsPaidModal: React.FC<MarkAsPaidModalProps> = ({
                             className={cn(
                                 "flex items-center justify-between p-5 rounded-2xl border-2 transition-all duration-300",
                                 selectedMethod === method.id
-                                    ? "bg-sage/10 border-sage shadow-ios scale-[1.02]"
-                                    : "bg-white border-cream-dark/30 hover:border-sage/30 hover:bg-cream-light/50"
+                                    ? "bg-primary/10 border-primary shadow-ios scale-[1.02]"
+                                    : "bg-white border-surface-neutral/30 hover:border-primary/30 hover:bg-surface-light/50"
                             )}
                         >
                             <div className="flex items-center space-x-4">
                                 <div className={cn(
                                     "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-                                    selectedMethod === method.id ? "bg-sage text-white" : "bg-cream-light text-dark/30"
+                                    selectedMethod === method.id ? "bg-primary text-white" : "bg-surface-light text-dark/30"
                                 )}>
                                     <method.icon size={24} />
                                 </div>
                                 <span className={cn(
                                     "font-bold text-lg",
-                                    selectedMethod === method.id ? "text-sage-dark" : "text-dark/60"
+                                    selectedMethod === method.id ? "text-primary-dark" : "text-dark/60"
                                 )}>
                                     {method.label}
                                 </span>
                             </div>
                             {selectedMethod === method.id && (
-                                <div className="w-6 h-6 bg-sage rounded-full flex items-center justify-center text-white">
+                                <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white">
                                     <Check size={14} strokeWidth={3} />
                                 </div>
                             )}

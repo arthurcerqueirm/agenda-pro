@@ -125,9 +125,9 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
             )}
 
             {(isAdding || editingId) && (
-                <div className="ios-card space-y-4 border-2 border-sage/20 bg-white animate-in zoom-in-95 duration-300">
+                <div className="ios-card space-y-4 border-2 border-primary/20 bg-white animate-in zoom-in-95 duration-300">
                     <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-display font-bold text-lg text-sage-dark">
+                        <h3 className="font-display font-bold text-lg text-primary-dark">
                             {isAdding ? 'Novo Serviço' : 'Editar Serviço'}
                         </h3>
                         <button
@@ -210,24 +210,24 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
                 <h3 className="font-display font-bold text-lg text-dark/40">Serviços Ativos</h3>
                 {loading && services.length === 0 ? (
                     <div className="py-20 flex justify-center">
-                        <Loader2 className="animate-spin text-sage" size={32} />
+                        <Loader2 className="animate-spin text-primary" size={32} />
                     </div>
                 ) : services.length > 0 ? (
                     <div className="space-y-3">
                         {services.map((m) => (
-                            <div key={m.id} className="ios-card group hover:shadow-ios-hover transition-all border-cream-dark/50">
+                            <div key={m.id} className="ios-card group hover:shadow-ios-hover transition-all border-surface-neutral/50">
                                 <div className="flex items-center justify-between">
                                     <div className="flex-1">
                                         <div className="flex items-center space-x-2">
                                             <h4 className="font-bold text-dark text-lg">{m.name}</h4>
-                                            <span className="text-[10px] bg-sage/10 text-sage px-2 py-0.5 rounded-full font-bold">Ativo</span>
+                                            <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Ativo</span>
                                         </div>
                                         <div className="flex items-center space-x-3 mt-1">
                                             <div className="flex items-center text-dark/40 text-xs font-bold">
                                                 <Clock size={12} className="mr-1" />
                                                 {m.duration_minutes} min
                                             </div>
-                                            <div className="flex items-center text-sage font-bold text-xs uppercase tracking-wider">
+                                            <div className="flex items-center text-primary font-bold text-xs uppercase tracking-wider">
                                                 <DollarSign size={12} className="mr-0.5" />
                                                 R$ {m.price}
                                             </div>
@@ -236,13 +236,13 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
                                     <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => startEdit(m)}
-                                            className="w-10 h-10 bg-cream-light text-sage rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                                            className="w-10 h-10 bg-surface-light text-primary rounded-xl flex items-center justify-center active:scale-90 transition-transform"
                                         >
                                             <Edit2 size={18} />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(m.id)}
-                                            className="w-10 h-10 bg-rose-light/50 text-rose-dark rounded-xl flex items-center justify-center active:scale-90 transition-transform"
+                                            className="w-10 h-10 bg-danger-light/50 text-danger-dark rounded-xl flex items-center justify-center active:scale-90 transition-transform"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -252,7 +252,7 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
                         ))}
                     </div>
                 ) : (
-                    <div className="text-center py-20 bg-white/50 rounded-[32px] border-2 border-dashed border-cream-dark text-dark/20 italic font-medium">
+                    <div className="text-center py-20 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium">
                         Nenhum serviço cadastrado
                     </div>
                 )}

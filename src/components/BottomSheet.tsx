@@ -39,14 +39,14 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
                     >
                         {/* Handle */}
                         <div className="w-full flex justify-center py-3">
-                            <div className="w-12 h-1.5 bg-cream-dark rounded-full" />
+                            <div className="w-12 h-1.5 bg-surface-neutral rounded-full" />
                         </div>
 
-                        <div className="px-6 pb-4 flex items-center justify-between border-b border-cream-dark">
+                        <div className="px-6 pb-4 flex items-center justify-between border-b border-surface-neutral">
                             {title && <h3 className="text-xl font-display font-semibold text-dark">{title}</h3>}
                             <button
                                 onClick={onClose}
-                                className="p-2 bg-cream-light rounded-full text-dark/40 active:scale-90"
+                                className="p-2 bg-surface-light rounded-full text-dark/40 active:scale-90"
                             >
                                 <X size={20} />
                             </button>

@@ -6,11 +6,11 @@ import { FinancialDashboard } from './pages/FinancialDashboard'
 import { AdminPanel } from './pages/AdminPanel'
 import { useAuth } from './context/AuthContext'
 import { Login } from './pages/Login'
-import { Flower2 } from 'lucide-react'
 
 // Puxar as rotas de Super Admin
 import { SuperAdminLogin } from './pages/SuperAdmin/SuperAdminLogin'
 import { SuperAdminDashboard } from './pages/SuperAdmin/SuperAdminDashboard'
+import { UpdatePassword } from './pages/UpdatePassword'
 
 type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
 
@@ -21,10 +21,8 @@ const MainApp = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-cream-light flex items-center justify-center">
-                <div className="animate-bounce text-sage">
-                    <Flower2 size={40} />
-                </div>
+            <div className="min-h-screen bg-surface-light flex items-center justify-center p-6">
+                <img src="/logo.png" alt="Agenda Pro" className="w-64 md:w-80 h-auto animate-pulse object-contain filter drop-shadow-md" />
             </div>
         )
     }
@@ -34,7 +32,7 @@ const MainApp = () => {
     }
 
     return (
-        <div className="min-h-screen bg-cream-light pb-24 px-4 pt-6">
+        <div className="min-h-screen bg-surface-light pb-36 px-4 pt-6">
             <main className="max-w-md mx-auto">
                 {activeTab === 'agenda' && <CalendarView />}
                 {activeTab === 'clients' && <ClientList />}
@@ -51,6 +49,11 @@ function App() {
     const [isSuperAdminAuthed, setIsSuperAdminAuthed] = useState(false)
 
     const isBackoffice = window.location.pathname.startsWith('/backoffice')
+    const isUpdatePassword = window.location.pathname.startsWith('/update-password')
+
+    if (isUpdatePassword) {
+        return <UpdatePassword />
+    }
 
     if (isBackoffice) {
         if (!isSuperAdminAuthed) {

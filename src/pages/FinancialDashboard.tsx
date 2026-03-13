@@ -72,8 +72,8 @@ export const FinancialDashboard: React.FC = () => {
     }
 
     const stats = [
-        { label: 'Recebido (Mês)', value: `R$ ${totals.received}`, icon: TrendingUp, color: 'text-sage' },
-        { label: 'A Receber', value: `R$ ${totals.pending}`, icon: Clock, color: 'text-rose' },
+        { label: 'Recebido (Mês)', value: `R$ ${totals.received}`, icon: TrendingUp, color: 'text-primary' },
+        { label: 'A Receber', value: `R$ ${totals.pending}`, icon: Clock, color: 'text-danger' },
         { label: 'Expectativa', value: `R$ ${totals.received + totals.pending}`, icon: DollarSign, color: 'text-dark' },
     ]
 
@@ -89,7 +89,7 @@ export const FinancialDashboard: React.FC = () => {
                 {stats.map((stat, i) => (
                     <div key={i} className="ios-card flex items-center justify-between group hover:shadow-ios-hover transition-all">
                         <div className="flex items-center space-x-4">
-                            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-cream-light", stat.color)}>
+                            <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center bg-surface-light", stat.color)}>
                                 <stat.icon size={24} />
                             </div>
                             <div>
@@ -103,12 +103,12 @@ export const FinancialDashboard: React.FC = () => {
             </div>
 
             {/* View Toggle */}
-            <div className="bg-cream-dark/30 p-1 rounded-2xl flex">
+            <div className="bg-surface-neutral/30 p-1 rounded-2xl flex">
                 <button
                     onClick={() => setActiveView('history')}
                     className={cn(
                         "flex-1 py-3 text-sm font-bold rounded-xl transition-all",
-                        activeView === 'history' ? "bg-white text-sage shadow-ios" : "text-dark/40 hover:text-dark/60"
+                        activeView === 'history' ? "bg-white text-primary shadow-ios" : "text-dark/40 hover:text-dark/60"
                     )}
                 >
                     Histórico
@@ -117,7 +117,7 @@ export const FinancialDashboard: React.FC = () => {
                     onClick={() => setActiveView('pending')}
                     className={cn(
                         "flex-1 py-3 text-sm font-bold rounded-xl transition-all",
-                        activeView === 'pending' ? "bg-rose-light/50 text-rose-dark shadow-ios" : "text-dark/40 hover:text-dark/60"
+                        activeView === 'pending' ? "bg-danger-light/50 text-danger-dark shadow-ios" : "text-dark/40 hover:text-dark/60"
                     )}
                 >
                     A Receber ({pendingAppointments.length})
@@ -130,7 +130,7 @@ export const FinancialDashboard: React.FC = () => {
                     <h3 className="font-display font-bold text-lg">
                         {activeView === 'history' ? 'Últimos Pagamentos' : 'Clientes a Receber'}
                     </h3>
-                    {loading && <Loader2 className="animate-spin text-sage" size={20} />}
+                    {loading && <Loader2 className="animate-spin text-primary" size={20} />}
                 </div>
 
                 {loading && payments.length === 0 ? (
@@ -144,7 +144,7 @@ export const FinancialDashboard: React.FC = () => {
                             <div className="flex items-center space-x-4">
                                 <div className={cn(
                                     "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                                    payment.status === 'paid' ? "bg-sage/10 text-sage" : "bg-rose/10 text-rose"
+                                    payment.status === 'paid' ? "bg-primary/10 text-primary" : "bg-danger/10 text-danger"
                                 )}>
                                     {payment.status === 'paid' ? <CheckCircle size={20} /> : <Clock size={20} />}
                                 </div>
@@ -158,7 +158,7 @@ export const FinancialDashboard: React.FC = () => {
                             <span className="font-display font-bold text-dark text-lg">R$ {payment.amount}</span>
                         </div>
                     )) : (
-                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-cream-dark text-dark/20 italic font-medium">
+                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium">
                             Nenhum pagamento registrado
                         </div>
                     )
@@ -166,7 +166,7 @@ export const FinancialDashboard: React.FC = () => {
                     pendingAppointments.length > 0 ? pendingAppointments.map((apt) => (
                         <div key={apt.id} className="ios-card flex items-center justify-between animate-in fade-in slide-in-from-right-4">
                             <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-rose/10 text-rose-dark rounded-2xl flex items-center justify-center">
+                                <div className="w-12 h-12 bg-danger/10 text-danger-dark rounded-2xl flex items-center justify-center">
                                     <Clock size={24} />
                                 </div>
                                 <div>
@@ -181,13 +181,13 @@ export const FinancialDashboard: React.FC = () => {
                                     setSelectedAppointment(apt)
                                     setIsPaymentModalOpen(true)
                                 }}
-                                className="bg-sage text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all"
+                                className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all"
                             >
                                 Pagar
                             </button>
                         </div>
                     )) : (
-                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-cream-dark text-dark/20 italic font-medium">
+                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium">
                             Não há clientes com pagamentos pendentes
                         </div>
                     )

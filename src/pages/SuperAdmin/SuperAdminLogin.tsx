@@ -33,9 +33,9 @@ export const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin }) => 
     }
 
     return (
-        <div className="min-h-screen bg-rose-light/20 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-danger-light/20 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-md text-center fade-in">
-                <div className="w-20 h-20 bg-rose-dark/10 rounded-full flex items-center justify-center mx-auto text-rose-dark shadow-inner mb-6">
+                <div className="w-20 h-20 bg-danger-dark/10 rounded-full flex items-center justify-center mx-auto text-danger-dark shadow-inner mb-6">
                     <ShieldAlert size={40} />
                 </div>
                 <h2 className="text-3xl font-display font-bold text-dark tracking-tight">Super Admin</h2>
@@ -43,10 +43,10 @@ export const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin }) => 
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md fade-in" style={{ animationDelay: '100ms' }}>
-                <div className="bg-white py-10 px-6 sm:px-10 rounded-ios-lg shadow-ios border border-cream-dark/50">
+                <div className="bg-white py-10 px-6 sm:px-10 rounded-ios-lg shadow-ios border border-surface-neutral/50">
                     <form className="space-y-6" onSubmit={handleLogin}>
                         {error && (
-                            <div className="bg-rose/10 text-rose-dark p-4 rounded-xl text-center font-bold text-sm animate-in zoom-in-95">
+                            <div className="bg-danger/10 text-danger-dark p-4 rounded-xl text-center font-bold text-sm animate-in zoom-in-95">
                                 {error}
                             </div>
                         )}
@@ -59,7 +59,7 @@ export const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin }) => 
                                 <input
                                     type="password"
                                     required
-                                    className="ios-input w-full pl-12 h-14 bg-cream-light/50 border-transparent focus:bg-white focus:border-rose/30"
+                                    className="ios-input w-full pl-12 h-14 bg-surface-light/50 border-transparent focus:bg-white focus:border-danger/30"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -70,7 +70,7 @@ export const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin }) => 
                         <div>
                             <Button
                                 type="submit"
-                                className="w-full h-14 bg-rose-dark hover:bg-rose-dark/90 text-white shadow-xl shadow-rose/20 text-lg"
+                                className="w-full h-14 bg-danger-dark hover:bg-danger-dark/90 text-white shadow-xl shadow-danger/20 text-lg"
                                 loading={loading}
                             >
                                 {loading ? 'Verificando...' : 'Acessar Backoffice'}

@@ -44,3 +44,22 @@ export type Payment = {
     payment_date: string | null
     created_at: string
 }
+
+export type ClientPackage = {
+    id: string
+    client_id: string
+    user_id: string
+    name: string
+    total_price: number
+    status: 'active' | 'completed' | 'cancelled'
+    created_at: string
+}
+
+export type ClientPackageItem = {
+    id: string
+    package_id: string
+    massage_id: string
+    quantity: number
+    used: number
+    created_at: string
+}
