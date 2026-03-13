@@ -12,8 +12,9 @@ export const SuperAdminLogin: React.FC<SuperAdminLoginProps> = ({ onLogin }) => 
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
 
-    // Simulando uma senha mestra (pode ser o que o cliente definir)
-    const MASTER_PASSWORD = 'admin'
+    // ⚠️ ALERTA: Esta senha é apenas para acesso ao Backoffice local.
+    // Para produção, use variáves de ambiente no seu provedor de deploy.
+    const MASTER_PASSWORD = import.meta.env.VITE_SUPER_ADMIN_PASSWORD || 'admin'
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault()

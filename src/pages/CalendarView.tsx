@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw, AlertCircle } from 'lucide-react'
 import { ConfirmModal } from '../components/ConfirmModal'
 import {
     format,
@@ -24,6 +24,26 @@ import { BottomSheet } from '../components/BottomSheet'
 import { SchedulingFlow } from '../components/SchedulingFlow'
 import { supabase } from '../utils/supabase'
 import { useSettings } from '../context/SettingsContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+
+const fetchAppointments = async (viewDate: Date) => {
+    const start = subDays(viewDate, 45)
+    const end = addDays(viewDate, 45)
+
+    const { data, error } = await supabase
+        .from('appointments')
+        .select(`
+            *,
+            client:client_id (name, phone),
+            service:massage_id (name, duration_minutes, price)
+        `)
+        .gte('start_time', start.toISOString())
+        .lte('start_time', end.toISOString())
+        .order('start_time')
+
+    if (error) throw error
+    return data || []
+}
 
 // Removing static HOURS, computing inside component now
 
@@ -45,12 +65,26 @@ export const CalendarView: React.FC = () => {
     const [touchStart, setTouchStart] = useState<number | null>(null)
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
-    const [appointments, setAppointments] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+    const queryClient = useQueryClient()
+    const { data: appointments = [], isLoading, error: queryError } = useQuery({
+        queryKey: ['appointments', format(viewDate, 'yyyy-MM-dd')],
+        queryFn: () => fetchAppointments(viewDate),
+    })
 
-    useEffect(() => {
-        fetchAppointments()
-    }, [viewDate])
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const { error } = await supabase
+                .from('appointments')
+                .delete()
+                .eq('id', id)
+            if (error) throw error
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['appointments'] })
+            setIsManaging(false)
+            setSelectedAppointment(null)
+        }
+    })
 
     // Keep viewDate in sync with selectedDay, and auto-scroll the mobile header
     useEffect(() => {
@@ -66,31 +100,7 @@ export const CalendarView: React.FC = () => {
         }
     }, [selectedDay])
 
-    const fetchAppointments = async () => {
-        if (appointments.length === 0) setLoading(true)
-        try {
-            const start = subDays(viewDate, 45)
-            const end = addDays(viewDate, 45)
 
-            const { data, error } = await supabase
-                .from('appointments')
-                .select(`
-          *,
-          client:client_id (name, phone),
-          service:massage_id (name, duration_minutes, price)
-        `)
-                .gte('start_time', start.toISOString())
-                .lte('start_time', end.toISOString())
-                .order('start_time')
-
-            if (error) throw error
-            setAppointments(data || [])
-        } catch (err) {
-            console.error('Erro ao buscar agendamentos:', err)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const navigate = (direction: 'prev' | 'next') => {
         const newDate = direction === 'next' ? addWeeks(viewDate, 1) : subWeeks(viewDate, 1)
@@ -121,18 +131,7 @@ export const CalendarView: React.FC = () => {
 
     const handleDeleteAppointment = async () => {
         if (!selectedAppointment) return
-        try {
-            const { error } = await supabase
-                .from('appointments')
-                .delete()
-                .eq('id', selectedAppointment.id)
-
-            if (error) throw error
-            setIsManaging(false)
-            fetchAppointments()
-        } catch (err) {
-            console.error('Erro ao desmarcar agendamento:', err)
-        }
+        deleteMutation.mutate(selectedAppointment.id)
     }
 
     const weekStart = startOfWeek(viewDate, { locale: ptBR })
@@ -143,7 +142,7 @@ export const CalendarView: React.FC = () => {
 
     const getAppointmentForSlot = (day: Date, hour: number) => {
         const slotTime = setMinutes(setHours(day, hour), 0)
-        return appointments.find(apt => {
+        return appointments.find((apt: any) => {
             const aptStart = new Date(apt.start_time)
             const aptEnd = new Date(apt.end_time)
             return isWithinInterval(slotTime, { start: aptStart, end: addMinutes(aptEnd, -1) })
@@ -246,7 +245,7 @@ export const CalendarView: React.FC = () => {
                         </thead>
                         <tbody key={selectedDay.toISOString()} className="divide-y divide-surface-neutral/20 fade-in">
                             {/* Skeleton loading rows */}
-                            {loading && HOURS.slice(0, 6).map((hour) => (
+                            {isLoading && HOURS.slice(0, 6).map((hour) => (
                                 <tr key={`skel-${hour}`}>
                                     <td className="text-center py-6 md:py-4 align-top w-16">
                                         <div className="h-3 w-8 mx-auto rounded-full bg-surface-neutral animate-pulse" />
@@ -265,7 +264,17 @@ export const CalendarView: React.FC = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {!loading && HOURS.map((hour) => (
+                            {isLoading && queryError && (
+                                <tr>
+                                    <td colSpan={days.length + 1} className="py-20 text-center text-danger opacity-60">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <AlertCircle size={32} />
+                                            <p className="font-bold">Erro ao carregar agenda</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                            {!isLoading && HOURS.map((hour) => (
                                 <tr key={hour} className="group">
                                     <td className="text-center py-6 md:py-4 align-top">
                                         <span className="text-xs font-bold text-dark/30">{hour}:00</span>
@@ -349,8 +358,8 @@ export const CalendarView: React.FC = () => {
                                 </tr>
                             ))}
                             {/* Mobile empty state row */}
-                            {!loading && (() => {
-                                const hasAnyForDay = appointments.some(apt =>
+                            {!isLoading && (() => {
+                                const hasAnyForDay = appointments.some((apt: any) =>
                                     isSameDay(new Date(apt.start_time), selectedDay)
                                 )
                                 if (hasAnyForDay) return null
@@ -381,9 +390,9 @@ export const CalendarView: React.FC = () => {
                         </tbody>
                     </table>
                     {/* Desktop empty state */}
-                    {!loading && (() => {
+                    {!isLoading && (() => {
                         const weekHasAny = days.some(day =>
-                            appointments.some(apt => isSameDay(new Date(apt.start_time), day))
+                            appointments.some((apt: any) => isSameDay(new Date(apt.start_time), day))
                         )
                         if (weekHasAny) return null
                         return (
@@ -433,7 +442,7 @@ export const CalendarView: React.FC = () => {
                     onComplete={() => {
                         setIsScheduling(false)
                         setSelectedSlot(null)
-                        fetchAppointments()
+                        queryClient.invalidateQueries({ queryKey: ['appointments'] })
                     }}
                 />
             </BottomSheet>

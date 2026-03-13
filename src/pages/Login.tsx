@@ -175,12 +175,12 @@ export const Login: React.FC = () => {
               className="text-3xl font-bold mb-2"
               style={{ fontFamily: 'Outfit, sans-serif', color: '#1A1A2E' }}
             >
-              {isLogin ? 'Bem-vindo de volta' : 'Criar sua senha'}
+              {isLogin ? 'Bem-vindo de volta' : 'Recuperar Acesso'}
             </h1>
             <p className="text-sm" style={{ color: '#6B7280' }}>
               {isLogin
                 ? 'Entre com seu e-mail e senha para continuar.'
-                : 'Informe seu e-mail e enviaremos um link seguro.'}
+                : 'Informe seu e-mail e enviaremos um link para criar sua senha.'}
             </p>
           </div>
 
@@ -245,9 +245,18 @@ export const Login: React.FC = () => {
             {/* Password */}
             {isLogin && (
               <div className="space-y-1.5">
-                <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#9CA3AF' }}>
-                  Senha
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold uppercase tracking-wide" style={{ color: '#9CA3AF' }}>
+                    Senha
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsLogin(false)}
+                    className="text-[11px] font-bold text-primary hover:text-primary-dark transition-colors"
+                  >
+                    Esqueci minha senha?
+                  </button>
+                </div>
                 <div className="relative">
                   <Lock
                     size={17}
@@ -326,7 +335,7 @@ export const Login: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {isLogin ? 'Entrar' : 'Receber Link Seguro'}
+                  {isLogin ? 'Entrar' : 'Enviar Link de Recuperação'}
                   <ArrowRight size={16} />
                 </>
               )}
@@ -350,7 +359,7 @@ export const Login: React.FC = () => {
               onMouseEnter={e => (e.currentTarget.style.color = '#1565C0')}
               onMouseLeave={e => (e.currentTarget.style.color = '#1A73E8')}
             >
-              {isLogin ? 'Primeiro acesso? Crie sua senha →' : '← Já tenho uma senha'}
+              {isLogin ? 'Primeiro acesso ao sistema? Gerar senha →' : '← Voltar para o Login'}
             </button>
           </div>
 

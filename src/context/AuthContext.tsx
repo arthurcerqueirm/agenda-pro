@@ -11,6 +11,7 @@ interface AuthContextType {
     updateProfileName: (name: string) => Promise<void>
     updateUserPassword: (password: string) => Promise<void>
     connectGoogleCalendar: () => Promise<void>
+    isAdmin: boolean
     signOut: () => Promise<void>
 }
 
@@ -156,8 +157,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error
     }
 
+    const isAdmin = user?.email?.toLowerCase() === (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase()
+
     return (
-        <AuthContext.Provider value={{ session, user, loading, signInWithEmail, sendPasswordResetEmail, updateProfileName, updateUserPassword, connectGoogleCalendar, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, isAdmin, signInWithEmail, sendPasswordResetEmail, updateProfileName, updateUserPassword, connectGoogleCalendar, signOut }}>
             {children}
         </AuthContext.Provider>
     )

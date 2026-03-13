@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { Search, UserPlus, Phone, MoreVertical, Loader2 } from 'lucide-react'
+import React, { useState } from 'react'
+import { Search, UserPlus, Phone, MoreVertical, Loader2, AlertCircle } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { cn } from '../utils/cn'
 import { Button } from '../components/Button'
 import { supabase } from '../utils/supabase'
@@ -8,84 +9,76 @@ import { BottomSheet } from '../components/BottomSheet'
 import { AddClientForm } from '../components/AddClientForm'
 import { ClientDetails } from '../components/ClientDetails'
 
+const fetchClients = async () => {
+    // 1. Fetch Clients
+    const { data: clientsData, error: clientsError } = await supabase
+        .from('clients')
+        .select('*')
+        .order('name')
+
+    if (clientsError) throw clientsError
+
+    // 2. Fetch all past confirmed appointments
+    const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select(`
+            id,
+            client_id,
+            status,
+            start_time,
+            service:massage_id (price)
+        `)
+        .eq('status', 'confirmed')
+        .lt('start_time', new Date().toISOString())
+
+    if (appointmentsError) throw appointmentsError
+
+    // 3. Fetch all payments
+    const { data: paymentsData, error: paymentsError } = await supabase
+        .from('payments')
+        .select('appointment_id, status')
+        .eq('status', 'paid')
+
+    if (paymentsError) throw paymentsError
+
+    const paidAptIds = new Set(paymentsData.map(p => p.appointment_id))
+
+    const clientDebts: Record<string, number> = {}
+    appointmentsData.forEach(apt => {
+        if (!paidAptIds.has(apt.id)) {
+            const price = Array.isArray(apt.service)
+                ? Number(apt.service[0]?.price || 0)
+                : Number((apt.service as any)?.price || 0)
+            clientDebts[apt.client_id] = (clientDebts[apt.client_id] || 0) + price
+        }
+    })
+
+    return (clientsData || []).map(client => ({
+        ...client,
+        pending_amount: clientDebts[client.id] || 0
+    }))
+}
+
 export const ClientList: React.FC = () => {
     const [search, setSearch] = useState('')
     const [filter, setFilter] = useState<'all' | 'active' | 'debtor'>('all')
-    const [clients, setClients] = useState<(Profile & { pending_amount: number })[]>([])
-    const [loading, setLoading] = useState(true)
     const [isAddingClient, setIsAddingClient] = useState(false)
     const [selectedClient, setSelectedClient] = useState<Profile | null>(null)
     const [isViewingDetails, setIsViewingDetails] = useState(false)
 
-    useEffect(() => {
-        fetchClients()
-    }, [])
+    const { data: clients = [], isLoading, error, refetch } = useQuery({
+        queryKey: ['clients'],
+        queryFn: fetchClients
+    })
 
-    const fetchClients = async () => {
-        setLoading(true)
-        try {
-            // 1. Fetch Clients
-            const { data: clientsData, error: clientsError } = await supabase
-                .from('clients')
-                .select('*')
-                .order('name')
 
-            if (clientsError) throw clientsError
-
-            // 2. Fetch all past confirmed appointments
-            const { data: appointmentsData, error: appointmentsError } = await supabase
-                .from('appointments')
-                .select(`
-                    id,
-                    client_id,
-                    status,
-                    start_time,
-                    service:massage_id (price)
-                `)
-                .eq('status', 'confirmed')
-                .lt('start_time', new Date().toISOString())
-
-            if (appointmentsError) throw appointmentsError
-
-            // 3. Fetch all payments
-            const { data: paymentsData, error: paymentsError } = await supabase
-                .from('payments')
-                .select('appointment_id, status')
-                .eq('status', 'paid')
-
-            if (paymentsError) throw paymentsError
-
-            const paidAptIds = new Set(paymentsData.map(p => p.appointment_id))
-
-            const clientDebts: Record<string, number> = {}
-            appointmentsData.forEach(apt => {
-                if (!paidAptIds.has(apt.id)) {
-                    const price = Array.isArray(apt.service)
-                        ? Number(apt.service[0]?.price || 0)
-                        : Number((apt.service as any)?.price || 0)
-                    clientDebts[apt.client_id] = (clientDebts[apt.client_id] || 0) + price
-                }
-            })
-
-            const clientsWithDebt = (clientsData || []).map(client => ({
-                ...client,
-                pending_amount: clientDebts[client.id] || 0
-            }))
-
-            setClients(clientsWithDebt)
-        } catch (err) {
-            console.error('Erro ao buscar clientes:', err)
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const handleAddSuccess = () => {
         setIsAddingClient(false)
-        fetchClients()
+        refetch()
     }
 
-    const filteredClients = clients.filter(c => {
+    const filteredClients = clients.filter((c: any) => {
         const matchesSearch = c.name.toLowerCase().includes(search.toLowerCase())
         if (filter === 'debtor') return matchesSearch && c.pending_amount > 0
         if (filter === 'active') return matchesSearch // For now assume all are active
@@ -97,7 +90,7 @@ export const ClientList: React.FC = () => {
             <header className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-display font-bold text-dark">Clientes</h2>
-                    <p className="text-dark/40 text-sm font-medium">{loading ? 'Carregando...' : `${clients.length} no total`}</p>
+                    <p className="text-dark/40 text-sm font-medium">{isLoading ? 'Carregando...' : `${clients.length} no total`}</p>
                 </div>
                 <button
                     onClick={() => setIsAddingClient(true)}
@@ -142,12 +135,17 @@ export const ClientList: React.FC = () => {
 
             {/* Client Cards */}
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 pb-24">
-                {loading ? (
+                {isLoading ? (
                     <div className="py-20 flex flex-col items-center justify-center space-y-4 text-primary opacity-40">
                         <Loader2 className="animate-spin" size={32} />
                         <p className="font-medium">Buscando clientes...</p>
                     </div>
-                ) : filteredClients.length > 0 ? filteredClients.map((client) => (
+                ) : error ? (
+                    <div className="col-span-full py-20 flex flex-col items-center justify-center space-y-4 text-danger opacity-60">
+                        <AlertCircle size={40} />
+                        <p className="font-bold text-center">Ocorreu um erro ao carregar os clientes.<br /><span className="text-xs font-normal">Tente novamente mais tarde.</span></p>
+                    </div>
+                ) : filteredClients.length > 0 ? filteredClients.map((client: any) => (
                     <div
                         key={client.id}
                         className="ios-card group active:scale-[0.98] transition-all cursor-pointer"
@@ -235,7 +233,7 @@ export const ClientList: React.FC = () => {
                         onDelete={() => {
                             setIsViewingDetails(false)
                             setSelectedClient(null)
-                            fetchClients()
+                            refetch()
                         }}
                     />
                 )}

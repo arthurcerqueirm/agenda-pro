@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { User, Phone, Mail, FileText, Loader2 } from 'lucide-react'
 import { Button } from './Button'
 import { supabase } from '../utils/supabase'
+import { clientSchema } from '../utils/schemas'
+import { z } from 'zod'
 
 interface AddClientFormProps {
     onSuccess: (client: any) => void
@@ -21,15 +23,12 @@ export const AddClientForm: React.FC<AddClientFormProps> = ({ onSuccess, onCance
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!formData.name) {
-            setError('O nome é obrigatório.')
-            return
-        }
-
         setLoading(true)
         setError(null)
 
         try {
+            // Validação com Zod
+            clientSchema.parse(formData)
             const { data, error: dbError } = await supabase
                 .from('clients')
                 .insert([formData])
@@ -40,7 +39,11 @@ export const AddClientForm: React.FC<AddClientFormProps> = ({ onSuccess, onCance
             onSuccess(data)
         } catch (err: any) {
             console.error(err)
-            setError(err.message || 'Erro ao cadastrar cliente.')
+            if (err instanceof z.ZodError) {
+                setError(err.errors[0].message)
+            } else {
+                setError(err.message || 'Erro ao cadastrar cliente.')
+            }
         } finally {
             setLoading(false)
         }

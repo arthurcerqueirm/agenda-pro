@@ -5,11 +5,12 @@ import { ServiceManager } from './ServiceManager'
 import { useSettings } from '../context/SettingsContext'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { Button } from '../components/Button'
+import { SuperAdminDashboard } from './SuperAdmin/SuperAdminDashboard'
 
-type AdminView = 'main' | 'services' | 'business-hours' | 'profile'
+type AdminView = 'main' | 'services' | 'business-hours' | 'profile' | 'super-admin'
 
 export const AdminPanel: React.FC = () => {
-    const { signOut, connectGoogleCalendar, session, user, updateProfileName, updateUserPassword } = useAuth()
+    const { signOut, connectGoogleCalendar, session, user, updateProfileName, updateUserPassword, isAdmin } = useAuth()
     const { settings, updateSettings } = useSettings()
     const [currentView, setCurrentView] = useState<AdminView>('main')
 
@@ -54,6 +55,19 @@ export const AdminPanel: React.FC = () => {
             ]
         }
     ]
+
+    if (isAdmin) {
+        settingsGroups.splice(1, 0, {
+            title: 'Ações de Desenvolvedor',
+            items: [
+                { label: 'Backoffice Global', icon: Shield, color: 'text-danger-dark', onClick: () => setCurrentView('super-admin') },
+            ]
+        })
+    }
+
+    if (currentView === 'super-admin') {
+        return <SuperAdminDashboard onLogout={() => setCurrentView('main')} />
+    }
 
     if (currentView === 'services') {
         return <ServiceManager onBack={() => setCurrentView('main')} />

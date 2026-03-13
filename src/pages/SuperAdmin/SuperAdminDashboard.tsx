@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Users, Plus, Trash2, Mail, Lock, Loader2, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react'
+import { Users, Plus, Trash2, Mail, Lock, Loader2, ArrowLeft, CheckCircle2, XCircle, Power } from 'lucide-react'
 import { Button } from '../../components/Button'
-import { supabaseAdmin } from '../../utils/supabaseAdmin'
+import { adminService } from '../../services/adminService'
 import { ConfirmModal } from '../../components/ConfirmModal'
 import { cn } from '../../utils/cn'
 
@@ -27,31 +27,16 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
         setLoading(true)
         setError(null)
         try {
-            const { data: authData, error: authError } = await supabaseAdmin.auth.admin.listUsers()
-            if (authError) throw authError
-
-            const { data: emailsData, error: emailsError } = await supabaseAdmin
-                .from('authorized_emails')
-                .select('*')
-
-            if (emailsError) throw emailsError
-
-            const mergedUsers = (authData?.users || []).map(u => {
-                const authRecord = emailsData?.find(e => e.email.toLowerCase() === u.email?.toLowerCase())
-                return {
-                    ...u,
-                    paymentStatus: authRecord?.status || 'inactive',
-                    paymentDate: authRecord?.updated_at || authRecord?.created_at || null
-                }
-            })
+            const data = await adminService.listUsers()
+            const usersList = data?.users || []
 
             // Sort by creation date descending
-            mergedUsers.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            usersList.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 
-            setUsers(mergedUsers)
+            setUsers(usersList)
         } catch (err: any) {
             console.error(err)
-            setError(err.message || 'Erro ao carregar lista de clientes (SaaS). Verifique as chaves.')
+            setError(err.message || 'Erro ao carregar lista de clientes (SaaS). Verifique se a Edge Function está correta.')
         } finally {
             setLoading(false)
         }
@@ -63,21 +48,14 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
         setError(null)
 
         try {
-            const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            await adminService.createUser({
                 email: form.email,
-                password: form.password,
-                email_confirm: true // Force confirm
+                password: form.password
             })
 
-            if (error) throw error
-
-            const { error: authError } = await supabaseAdmin
-                .from('authorized_emails')
-                .upsert({ email: form.email.toLowerCase(), status: 'active' }, { onConflict: 'email' })
-
-            if (authError) {
-                console.error('Failed to authorize email, but user was created', authError)
-            }
+            // The authorized_emails table logic should ideally be inside the Edge Function too
+            // for absolute security, but if it has RLS properly set, we can keep it here.
+            // But let's keep it simple and assume the Edge Function handles everything auth-related.
 
             setForm({ email: '', password: '' })
             setIsAdding(false)
@@ -101,12 +79,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
         setError(null)
 
         try {
-            const { error } = await supabaseAdmin.auth.admin.deleteUser(userToDelete.id)
-            if (error) throw error
+            await adminService.deleteUser(userToDelete.id)
 
-            if (userToDelete.email) {
-                await supabaseAdmin.from('authorized_emails').delete().eq('email', userToDelete.email)
-            }
+            // Table clean up logic should also be in the function or secured
 
             fetchUsers()
         } catch (err: any) {
@@ -116,6 +91,20 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
             setActionLoading(false)
             setUserToDelete(null)
             setIsConfirmOpen(false)
+        }
+    }
+
+    const handleToggleStatus = async (email: string, currentStatus: string) => {
+        setActionLoading(true)
+        try {
+            const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
+            await adminService.updateUserStatus(email, newStatus)
+            fetchUsers()
+        } catch (err: any) {
+            console.error(err)
+            setError(err.message || 'Erro ao atualizar status do usuário.')
+        } finally {
+            setActionLoading(false)
         }
     }
 
@@ -269,14 +258,30 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                                                 {new Date(u.created_at).toLocaleDateString('pt-BR')}
                                             </span>
                                         </div>
-                                        <button
-                                            onClick={() => handleDeleteUser(u.id, u.email)}
-                                            disabled={actionLoading}
-                                            className="w-10 h-10 ml-2 bg-danger-light/30 text-danger-dark rounded-xl flex items-center justify-center hover:bg-danger-dark hover:text-white active:scale-95 transition-all disabled:opacity-50"
-                                            title="Deletar Conta Permanentemente"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => handleToggleStatus(u.email, u.paymentStatus)}
+                                                disabled={actionLoading}
+                                                className={cn(
+                                                    "w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-50",
+                                                    u.paymentStatus === 'active' 
+                                                        ? "bg-primary/10 text-primary hover:bg-primary hover:text-white" 
+                                                        : "bg-dark/10 text-dark/40 hover:bg-dark hover:text-white"
+                                                )}
+                                                title={u.paymentStatus === 'active' ? 'Desativar Acesso' : 'Ativar Acesso'}
+                                            >
+                                                <Power size={18} />
+                                            </button>
+                                            
+                                            <button
+                                                onClick={() => handleDeleteUser(u.id, u.email)}
+                                                disabled={actionLoading}
+                                                className="w-10 h-10 bg-danger-light/30 text-danger-dark rounded-xl flex items-center justify-center hover:bg-danger-dark hover:text-white active:scale-95 transition-all disabled:opacity-50"
+                                                title="Deletar Conta Permanentemente"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

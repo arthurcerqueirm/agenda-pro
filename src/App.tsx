@@ -11,10 +11,9 @@ import { useNotifications } from './hooks/useNotifications'
 import { Login } from './pages/Login'
 import { LandingPage } from './pages/LandingPage'
 
-// Puxar as rotas de Super Admin
-import { SuperAdminLogin } from './pages/SuperAdmin/SuperAdminLogin'
 import { SuperAdminDashboard } from './pages/SuperAdmin/SuperAdminDashboard'
 import { UpdatePassword } from './pages/UpdatePassword'
+import { ErrorBoundary } from './components/ErrorBoundary'
 
 type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
 
@@ -56,7 +55,6 @@ const MainApp = () => {
 }
 
 function App() {
-    const [isSuperAdminAuthed, setIsSuperAdminAuthed] = useState(false)
 
     const path = window.location.pathname
     const isBackoffice = path.startsWith('/backoffice')
@@ -76,15 +74,14 @@ function App() {
 
     if (isUpdatePassword) return <UpdatePassword />
 
-    if (isBackoffice) {
-        if (!isSuperAdminAuthed) {
-            return <SuperAdminLogin onLogin={() => setIsSuperAdminAuthed(true)} />
-        }
-        return <SuperAdminDashboard onLogout={() => setIsSuperAdminAuthed(false)} />
-    }
+    if (isUpdatePassword) return <UpdatePassword />
 
-    // /app -> main SaaS app
-    if (isApp) return <MainApp />
+// /app -> main SaaS app
+    if (isApp) return (
+        <ErrorBoundary>
+            <MainApp />
+        </ErrorBoundary>
+    )
 
     // / -> Landing Page
     return <LandingPage />
