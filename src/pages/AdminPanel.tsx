@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Info, Bell, Shield, LogOut, ChevronRight, Briefcase, Calendar } from 'lucide-react'
+import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar, Check } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { ServiceManager } from './ServiceManager'
 import { useSettings } from '../context/SettingsContext'
@@ -40,7 +40,6 @@ export const AdminPanel: React.FC = () => {
                     onClick: connectGoogleCalendar
                 },
                 { label: 'Horário de Funcionamento', icon: Shield, color: 'text-dark/60', onClick: () => setCurrentView('business-hours') },
-                { label: 'Notificações Automáticas', icon: Bell, color: 'text-danger', onClick: () => { } },
             ]
         },
         {
@@ -216,6 +215,98 @@ export const AdminPanel: React.FC = () => {
                         </div>
                     </div>
                     <ChevronRight size={20} className="text-white/50" />
+                </div>
+            </div>
+
+            {/* Notifications Card */}
+            <div className="space-y-3">
+                <h4 className="text-[10px] uppercase font-bold text-dark/30 ml-2">Notificações</h4>
+                <div className="ios-card space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                            {settings.notificationsEnabled
+                                ? <Bell className="text-primary" size={20} />
+                                : <BellOff className="text-dark/30" size={20} />}
+                            <div>
+                                <p className="font-bold text-dark text-sm">Lembrete de Agendamento</p>
+                                <p className="text-[10px] text-dark/40 font-medium">Receba um aviso antes do horário</p>
+                            </div>
+                        </div>
+                        {/* Toggle Switch */}
+                        <button
+                            onClick={async () => {
+                                if (!settings.notificationsEnabled) {
+                                    if (!('Notification' in window)) {
+                                        alert('Seu navegador não suporta notificações.')
+                                        return
+                                    }
+                                    const perm = await Notification.requestPermission()
+                                    if (perm !== 'granted') {
+                                        alert('Permissão negada. Habilite notificações nas configurações do seu navegador/celular.')
+                                        return
+                                    }
+                                }
+                                updateSettings({ notificationsEnabled: !settings.notificationsEnabled })
+                            }}
+                            className={`relative w-12 h-7 rounded-full transition-colors duration-300 ${settings.notificationsEnabled ? 'bg-primary' : 'bg-dark/20'
+                                }`}
+                        >
+                            <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ${settings.notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                                }`} />
+                        </button>
+                    </div>
+
+                    {settings.notificationsEnabled && (
+                        <div className="pt-3 border-t border-surface-neutral/50 space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-dark/60 uppercase">Avisar quantos minutos antes?</label>
+                                <div className="flex gap-2 flex-wrap">
+                                    {[10, 15, 30, 60].map((min) => (
+                                        <button
+                                            key={min}
+                                            onClick={() => updateSettings({ notifyMinutesBefore: min })}
+                                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${settings.notifyMinutesBefore === min
+                                                ? 'bg-primary text-white shadow-ios'
+                                                : 'bg-surface-light text-dark/50 border border-surface-neutral'
+                                                }`}
+                                        >
+                                            {min === 60 ? '1 hora' : `${min} min`}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Test Button */}
+                            <button
+                                onClick={async () => {
+                                    if (Notification.permission !== 'granted') {
+                                        alert('Permissão de notificação não concedida.')
+                                        return
+                                    }
+                                    const sendTest = () => {
+                                        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                                            navigator.serviceWorker.controller.postMessage({
+                                                type: 'SHOW_NOTIFICATION',
+                                                title: '⏰ Agendamento em 30 minutos',
+                                                body: 'Maria Silva • Massagem Relaxante',
+                                                icon: '/logo-celular.png',
+                                            })
+                                        } else {
+                                            new Notification('⏰ Agendamento em 30 minutos', {
+                                                body: 'Maria Silva • Massagem Relaxante',
+                                                icon: '/logo-celular.png',
+                                            })
+                                        }
+                                    }
+                                    sendTest()
+                                }}
+                                className="w-full flex items-center justify-center space-x-2 py-3 rounded-xl bg-primary/10 text-primary font-bold text-sm active:scale-95 transition-transform border border-primary/20"
+                            >
+                                <Bell size={16} />
+                                <span>Ver exemplo de notificação</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

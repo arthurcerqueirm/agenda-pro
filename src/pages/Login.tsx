@@ -37,7 +37,8 @@ export const Login: React.FC = () => {
             <div className="flex flex-col items-center mb-6 mt-[-4rem]">
                 <img src="/logo.png" alt="Agenda Pro" className="w-[18rem] sm:w-[22rem] md:w-[26rem] h-auto mb-2 object-contain filter drop-shadow-lg hover:scale-[1.02] transition-transform" />
                 <p className="text-dark/50 font-medium text-base sm:text-lg leading-relaxed max-w-[300px]">
-                    Gestão inteligente para impulsionar o seu negócio.
+                    Organize. Atenda. Cresça.<br />
+                    <span className="text-sm text-dark/40">Sua agenda profissional, na palma da mão.</span>
                 </p>
             </div>
 
@@ -101,7 +102,7 @@ export const Login: React.FC = () => {
             </form>
 
             <footer className="fixed bottom-12 text-[10px] font-bold text-dark/10 uppercase tracking-[0.2em]">
-                Premium Wellness Experience
+                Agenda Pro &copy; 2025
             </footer>
         </div>
     )

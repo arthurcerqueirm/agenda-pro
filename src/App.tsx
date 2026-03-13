@@ -6,6 +6,8 @@ import { ClientList } from './pages/ClientList'
 import { FinancialDashboard } from './pages/FinancialDashboard'
 import { AdminPanel } from './pages/AdminPanel'
 import { useAuth } from './context/AuthContext'
+import { useSettings } from './context/SettingsContext'
+import { useNotifications } from './hooks/useNotifications'
 import { Login } from './pages/Login'
 
 // Puxar as rotas de Super Admin
@@ -18,7 +20,11 @@ type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
 // Main App Component encapsulado para lidar com as abas e autenticação comum
 const MainApp = () => {
     const { user, loading } = useAuth()
+    const { settings } = useSettings()
     const [activeTab, setActiveTab] = useState<Tab>('agenda')
+
+    // Hook de notificações — ativo apenas se o usuário habilitou
+    useNotifications(settings.notificationsEnabled, settings.notifyMinutesBefore)
 
     if (loading) {
         return (
