@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit2, ChevronLeft, Loader2, Save, X, Clock, DollarSign } from 'lucide-react'
 import { supabase } from '../utils/supabase'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { Button } from '../components/Button'
 import { cn } from '../utils/cn'
 import { Service } from '../types/database'
@@ -14,6 +15,8 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
     const [loading, setLoading] = useState(true)
     const [editingId, setEditingId] = useState<string | null>(null)
     const [isAdding, setIsAdding] = useState(false)
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+    const [serviceToDelete, setServiceToDelete] = useState<string | null>(null)
 
     // Form State
     const [formData, setFormData] = useState<Omit<Service, 'id' | 'is_active' | 'image_url' | 'user_id'>>({
@@ -71,20 +74,27 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Tem certeza que deseja excluir este serviço?')) return
+        setServiceToDelete(id)
+        setIsConfirmOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (!serviceToDelete) return
         setLoading(true)
         try {
             // Soft delete using is_active
             const { error } = await supabase
                 .from('massages')
                 .update({ is_active: false })
-                .eq('id', id)
+                .eq('id', serviceToDelete)
             if (error) throw error
             fetchServices()
         } catch (err) {
-            alert('Erro ao excluir serviço.')
+            console.error('Erro ao excluir serviço:', err)
         } finally {
             setLoading(false)
+            setServiceToDelete(null)
+            setIsConfirmOpen(false)
         }
     }
 
@@ -257,6 +267,17 @@ export const ServiceManager: React.FC<ServiceManagerProps> = ({ onBack }) => {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                title="Excluir serviço?"
+                message="Tem certeza que deseja excluir este serviço? Os clientes não poderão mais agendá-lo, mas os registros passados serão mantidos."
+                confirmLabel="Excluir"
+                cancelLabel="Manter"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => { setIsConfirmOpen(false); setServiceToDelete(null); }}
+            />
         </div>
     )
 }

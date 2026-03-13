@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Users, Plus, Trash2, Mail, Lock, Loader2, ArrowLeft, CheckCircle2, XCircle } from 'lucide-react'
 import { Button } from '../../components/Button'
 import { supabaseAdmin } from '../../utils/supabaseAdmin'
+import { ConfirmModal } from '../../components/ConfirmModal'
 import { cn } from '../../utils/cn'
 
 interface SuperAdminDashboardProps {
@@ -14,8 +15,9 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
     const [isAdding, setIsAdding] = useState(false)
     const [actionLoading, setActionLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
-
     const [form, setForm] = useState({ email: '', password: '' })
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+    const [userToDelete, setUserToDelete] = useState<{ id: string, email?: string } | null>(null)
 
     useEffect(() => {
         fetchUsers()
@@ -89,19 +91,21 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
     }
 
     const handleDeleteUser = async (userId: string, email?: string) => {
-        if (!confirm(`TEM CERTEZA ABSOLUTA?\nEssa ação deletará a conta ${email} permanentemente, além de quebrar qualquer acesso aos dados antigos atrelados a ela.`)) {
-            return
-        }
+        setUserToDelete({ id: userId, email })
+        setIsConfirmOpen(true)
+    }
 
+    const confirmDelete = async () => {
+        if (!userToDelete) return
         setActionLoading(true)
         setError(null)
 
         try {
-            const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
+            const { error } = await supabaseAdmin.auth.admin.deleteUser(userToDelete.id)
             if (error) throw error
 
-            if (email) {
-                await supabaseAdmin.from('authorized_emails').delete().eq('email', email)
+            if (userToDelete.email) {
+                await supabaseAdmin.from('authorized_emails').delete().eq('email', userToDelete.email)
             }
 
             fetchUsers()
@@ -110,6 +114,8 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
             setError(err.message || 'Erro ao deletar inquilino (Tenant).')
         } finally {
             setActionLoading(false)
+            setUserToDelete(null)
+            setIsConfirmOpen(false)
         }
     }
 
@@ -278,6 +284,17 @@ export const SuperAdminDashboard: React.FC<SuperAdminDashboardProps> = ({ onLogo
                     )}
                 </div>
             </main>
+
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                title="EXCLUIR CONTA PERMANENTEMENTE?"
+                message={`TEM CERTEZA ABSOLUTA? Esta ação deletará a conta ${userToDelete?.email} permanentemente, além de apagar todos os dados atrelados a ela. Esta ação NÃO pode ser desfeita.`}
+                confirmLabel="Excluir Permanentemente"
+                cancelLabel="Manter Conta"
+                variant="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => { setIsConfirmOpen(false); setUserToDelete(null); }}
+            />
         </div>
     )
 }

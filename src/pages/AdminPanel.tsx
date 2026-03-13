@@ -3,6 +3,7 @@ import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar,
 import { useAuth } from '../context/AuthContext'
 import { ServiceManager } from './ServiceManager'
 import { useSettings } from '../context/SettingsContext'
+import { ConfirmModal } from '../components/ConfirmModal'
 import { Button } from '../components/Button'
 
 type AdminView = 'main' | 'services' | 'business-hours' | 'profile'
@@ -18,14 +19,17 @@ export const AdminPanel: React.FC = () => {
     const [profileName, setProfileName] = useState(user?.user_metadata?.full_name || '')
     const [newPassword, setNewPassword] = useState('')
     const [profileLoading, setProfileLoading] = useState(false)
+    const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
 
     const hasGoogleToken = !!session?.provider_token || !!sessionStorage.getItem('google_provider_token')
 
     const handleLogout = async () => {
-        if (confirm('Deseja realmente sair?')) {
-            await signOut()
-            window.location.reload()
-        }
+        setIsLogoutConfirmOpen(true)
+    }
+
+    const confirmLogout = async () => {
+        await signOut()
+        window.location.reload()
     }
 
     const settingsGroups = [
@@ -340,6 +344,17 @@ export const AdminPanel: React.FC = () => {
                     </p>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={isLogoutConfirmOpen}
+                title="Sair da conta?"
+                message="Tem certeza que deseja encerrar sua sessão atual?"
+                confirmLabel="Sair"
+                cancelLabel="Cancelar"
+                variant="danger"
+                onConfirm={confirmLogout}
+                onCancel={() => setIsLogoutConfirmOpen(false)}
+            />
         </div>
     )
 }

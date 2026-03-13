@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Loader2, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw } from 'lucide-react'
+import { ConfirmModal } from '../components/ConfirmModal'
 import {
     format,
     addDays,
@@ -37,6 +38,7 @@ export const CalendarView: React.FC = () => {
     const [selectedDay, setSelectedDay] = useState<Date>(new Date())
     const [isScheduling, setIsScheduling] = useState(false)
     const [isManaging, setIsManaging] = useState(false)
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false)
     const [selectedSlot, setSelectedSlot] = useState<Date | null>(null)
     const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null)
 
@@ -119,8 +121,6 @@ export const CalendarView: React.FC = () => {
 
     const handleDeleteAppointment = async () => {
         if (!selectedAppointment) return
-        if (!confirm('Tem certeza que deseja desmarcar este agendamento?')) return
-
         try {
             const { error } = await supabase
                 .from('appointments')
@@ -131,7 +131,7 @@ export const CalendarView: React.FC = () => {
             setIsManaging(false)
             fetchAppointments()
         } catch (err) {
-            alert('Erro ao desmarcar agendamento.')
+            console.error('Erro ao desmarcar agendamento:', err)
         }
     }
 
@@ -215,11 +215,6 @@ export const CalendarView: React.FC = () => {
                 onTouchMove={onTouchMove}
                 onTouchEnd={onTouchEnd}
             >
-                {loading && (
-                    <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px] z-50 flex items-center justify-center">
-                        <Loader2 className="animate-spin text-primary" size={32} />
-                    </div>
-                )}
 
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse table-fixed min-w-full md:min-w-[800px]">
@@ -250,7 +245,27 @@ export const CalendarView: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody key={selectedDay.toISOString()} className="divide-y divide-surface-neutral/20 fade-in">
-                            {HOURS.map((hour) => (
+                            {/* Skeleton loading rows */}
+                            {loading && HOURS.slice(0, 6).map((hour) => (
+                                <tr key={`skel-${hour}`}>
+                                    <td className="text-center py-6 md:py-4 align-top w-16">
+                                        <div className="h-3 w-8 mx-auto rounded-full bg-surface-neutral animate-pulse" />
+                                    </td>
+                                    {days.map((d) => (
+                                        <td key={`skel-${d}-${hour}`} className="p-2 h-16 hidden md:table-cell">
+                                            {hour % 3 === 0 && (
+                                                <div className="h-10 rounded-xl bg-primary/8 animate-pulse" style={{ animationDelay: `${hour * 60}ms` }} />
+                                            )}
+                                        </td>
+                                    ))}
+                                    <td className="p-2 md:hidden h-20">
+                                        {hour % 2 === 0 && (
+                                            <div className="h-14 rounded-2xl bg-surface-neutral/60 animate-pulse" style={{ animationDelay: `${hour * 80}ms` }} />
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                            {!loading && HOURS.map((hour) => (
                                 <tr key={hour} className="group">
                                     <td className="text-center py-6 md:py-4 align-top">
                                         <span className="text-xs font-bold text-dark/30">{hour}:00</span>
@@ -333,8 +348,63 @@ export const CalendarView: React.FC = () => {
                                     </td>
                                 </tr>
                             ))}
+                            {/* Mobile empty state row */}
+                            {!loading && (() => {
+                                const hasAnyForDay = appointments.some(apt =>
+                                    isSameDay(new Date(apt.start_time), selectedDay)
+                                )
+                                if (hasAnyForDay) return null
+                                return (
+                                    <tr>
+                                        <td />
+                                        <td className="py-10 px-4 md:hidden" colSpan={1}>
+                                            <div className="flex flex-col items-center gap-3 text-center">
+                                                <div className="w-16 h-16 rounded-3xl flex items-center justify-center" style={{ background: '#EBF3FD' }}>
+                                                    <CalendarIcon size={28} style={{ color: '#1A73E8' }} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-dark/70 text-sm">Nenhum atendimento</p>
+                                                    <p className="text-xs text-dark/40 mt-0.5">Sua agenda está livre neste dia</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setSelectedSlot(null); setIsScheduling(true) }}
+                                                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white transition-all active:scale-95"
+                                                    style={{ background: '#1A73E8', boxShadow: '0 4px 12px rgba(26,115,232,0.3)' }}
+                                                >
+                                                    <Plus size={14} /> Novo Agendamento
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )
+                            })()}
                         </tbody>
                     </table>
+                    {/* Desktop empty state */}
+                    {!loading && (() => {
+                        const weekHasAny = days.some(day =>
+                            appointments.some(apt => isSameDay(new Date(apt.start_time), day))
+                        )
+                        if (weekHasAny) return null
+                        return (
+                            <div className="hidden md:flex flex-col items-center gap-4 py-16 border-t border-surface-neutral/30">
+                                <div className="w-20 h-20 rounded-3xl flex items-center justify-center" style={{ background: '#EBF3FD' }}>
+                                    <CalendarIcon size={36} style={{ color: '#1A73E8' }} />
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-bold text-dark text-lg">Semana livre</p>
+                                    <p className="text-sm text-dark/40 mt-1">Nenhum atendimento agendado para esta semana</p>
+                                </div>
+                                <button
+                                    onClick={() => { setSelectedSlot(null); setIsScheduling(true) }}
+                                    className="flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-bold text-white transition-all hover:-translate-y-0.5 active:scale-95"
+                                    style={{ background: 'linear-gradient(135deg, #1A73E8, #1565C0)', boxShadow: '0 6px 20px rgba(26,115,232,0.35)' }}
+                                >
+                                    <Plus size={16} /> Agendar um atendimento
+                                </button>
+                            </div>
+                        )
+                    })()}
                 </div>
             </div>
 
@@ -418,7 +488,7 @@ export const CalendarView: React.FC = () => {
                             <Button
                                 variant="ghost"
                                 className="h-14 text-danger-dark hover:bg-danger/10 space-x-2"
-                                onClick={handleDeleteAppointment}
+                                onClick={() => setIsConfirmOpen(true)}
                             >
                                 <Trash2 size={20} />
                                 <span>Desmarcar Serviço</span>
@@ -430,7 +500,20 @@ export const CalendarView: React.FC = () => {
                         </p>
                     </div>
                 )}
+
             </BottomSheet>
+
+            {/* Confirm delete modal */}
+            <ConfirmModal
+                isOpen={isConfirmOpen}
+                title="Desmarcar agendamento?"
+                message={`Tem certeza que deseja desmarcar o atendimento de ${selectedAppointment?.client?.name ?? 'este cliente'}? Esta ação não pode ser desfeita.`}
+                confirmLabel="Desmarcar"
+                cancelLabel="Manter"
+                variant="danger"
+                onConfirm={handleDeleteAppointment}
+                onCancel={() => setIsConfirmOpen(false)}
+            />
         </div>
     )
 }
