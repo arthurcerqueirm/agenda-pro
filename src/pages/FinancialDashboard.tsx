@@ -9,7 +9,7 @@ export const FinancialDashboard: React.FC = () => {
     const [payments, setPayments] = useState<any[]>([])
     const [pendingAppointments, setPendingAppointments] = useState<any[]>([])
     const [totals, setTotals] = useState({ received: 0, pending: 0 })
-    const [activeView, setActiveView] = useState<'history' | 'pending'>('history')
+    const [activeView, setActiveView] = useState<'history' | 'pending'>('pending')
 
     const [selectedAppointment, setSelectedAppointment] = useState<any | null>(null)
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
@@ -184,9 +184,9 @@ export const FinancialDashboard: React.FC = () => {
                                         setSelectedAppointment(apt)
                                         setIsPaymentModalOpen(true)
                                     }}
-                                    className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all"
+                                    className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all whitespace-nowrap"
                                 >
-                                    Pagar
+                                    Confirmar Pagamento
                                 </button>
                             </div>
                         )) : (
