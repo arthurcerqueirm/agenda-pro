@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import BottomNav from './components/BottomNav'
+import SideNav from './components/SideNav'
 import { CalendarView } from './pages/CalendarView'
 import { ClientList } from './pages/ClientList'
 import { FinancialDashboard } from './pages/FinancialDashboard'
@@ -32,8 +33,10 @@ const MainApp = () => {
     }
 
     return (
-        <div className="min-h-screen bg-surface-light pb-36 px-4 pt-6">
-            <main className="max-w-md mx-auto">
+        <div className="min-h-screen bg-surface-light pb-36 md:pb-8 flex">
+            <SideNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+            <main className="flex-1 w-full max-w-md md:max-w-6xl mx-auto md:ml-64 px-4 pt-6 transition-all duration-300">
                 {activeTab === 'agenda' && <CalendarView />}
                 {activeTab === 'clients' && <ClientList />}
                 {activeTab === 'finance' && <FinancialDashboard />}

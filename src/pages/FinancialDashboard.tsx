@@ -85,7 +85,7 @@ export const FinancialDashboard: React.FC = () => {
             </header>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {stats.map((stat, i) => (
                     <div key={i} className="ios-card flex items-center justify-between group hover:shadow-ios-hover transition-all">
                         <div className="flex items-center space-x-4">
@@ -139,58 +139,62 @@ export const FinancialDashboard: React.FC = () => {
                         <p className="font-medium">Carregando dados...</p>
                     </div>
                 ) : activeView === 'history' ? (
-                    payments.length > 0 ? payments.map((payment) => (
-                        <div key={payment.id} className="ios-card flex items-center justify-between group">
-                            <div className="flex items-center space-x-4">
-                                <div className={cn(
-                                    "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                                    payment.status === 'paid' ? "bg-primary/10 text-primary" : "bg-danger/10 text-danger"
-                                )}>
-                                    {payment.status === 'paid' ? <CheckCircle size={20} /> : <Clock size={20} />}
+                    <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-2 md:gap-4">
+                        {payments.length > 0 ? payments.map((payment) => (
+                            <div key={payment.id} className="ios-card flex items-center justify-between group">
+                                <div className="flex items-center space-x-4">
+                                    <div className={cn(
+                                        "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
+                                        payment.status === 'paid' ? "bg-primary/10 text-primary" : "bg-danger/10 text-danger"
+                                    )}>
+                                        {payment.status === 'paid' ? <CheckCircle size={20} /> : <Clock size={20} />}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-dark">{payment.appointment?.client?.name || 'Cliente'}</h4>
+                                        <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
+                                            {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('pt-BR') : 'Pendente'} • {payment.method || 'N/A'} • {payment.appointment?.service?.name}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-dark">{payment.appointment?.client?.name || 'Cliente'}</h4>
-                                    <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
-                                        {payment.payment_date ? new Date(payment.payment_date).toLocaleDateString('pt-BR') : 'Pendente'} • {payment.method || 'N/A'} • {payment.appointment?.service?.name}
-                                    </p>
-                                </div>
+                                <span className="font-display font-bold text-dark text-lg">R$ {payment.amount}</span>
                             </div>
-                            <span className="font-display font-bold text-dark text-lg">R$ {payment.amount}</span>
-                        </div>
-                    )) : (
-                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium">
-                            Nenhum pagamento registrado
-                        </div>
-                    )
+                        )) : (
+                            <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium md:col-span-2">
+                                Nenhum pagamento registrado
+                            </div>
+                        )}
+                    </div>
                 ) : (
-                    pendingAppointments.length > 0 ? pendingAppointments.map((apt) => (
-                        <div key={apt.id} className="ios-card flex items-center justify-between animate-in fade-in slide-in-from-right-4">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-danger/10 text-danger-dark rounded-2xl flex items-center justify-center">
-                                    <Clock size={24} />
+                    <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-2 md:gap-4">
+                        {pendingAppointments.length > 0 ? pendingAppointments.map((apt) => (
+                            <div key={apt.id} className="ios-card flex items-center justify-between animate-in fade-in slide-in-from-right-4">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-danger/10 text-danger-dark rounded-2xl flex items-center justify-center">
+                                        <Clock size={24} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-dark">{apt.client?.name}</h4>
+                                        <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
+                                            Realizado em {new Date(apt.start_time).toLocaleDateString('pt-BR')} • {apt.service?.name}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h4 className="font-bold text-dark">{apt.client?.name}</h4>
-                                    <p className="text-[10px] text-dark/30 font-bold uppercase tracking-tight">
-                                        Realizado em {new Date(apt.start_time).toLocaleDateString('pt-BR')} • {apt.service?.name}
-                                    </p>
-                                </div>
+                                <button
+                                    onClick={() => {
+                                        setSelectedAppointment(apt)
+                                        setIsPaymentModalOpen(true)
+                                    }}
+                                    className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all"
+                                >
+                                    Pagar
+                                </button>
                             </div>
-                            <button
-                                onClick={() => {
-                                    setSelectedAppointment(apt)
-                                    setIsPaymentModalOpen(true)
-                                }}
-                                className="bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-ios active:scale-95 transition-all"
-                            >
-                                Pagar
-                            </button>
-                        </div>
-                    )) : (
-                        <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium">
-                            Não há clientes com pagamentos pendentes
-                        </div>
-                    )
+                        )) : (
+                            <div className="text-center py-16 bg-white/50 rounded-[32px] border-2 border-dashed border-surface-neutral text-dark/20 italic font-medium md:col-span-2">
+                                Não há clientes com pagamentos pendentes
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 
@@ -207,6 +211,6 @@ export const FinancialDashboard: React.FC = () => {
                     clientName={selectedAppointment.client?.name}
                 />
             )}
-        </div>
+        </div >
     )
 }

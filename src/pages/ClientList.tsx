@@ -141,7 +141,7 @@ export const ClientList: React.FC = () => {
             </div>
 
             {/* Client Cards */}
-            <div className="space-y-3 pb-24">
+            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 pb-24">
                 {loading ? (
                     <div className="py-20 flex flex-col items-center justify-center space-y-4 text-primary opacity-40">
                         <Loader2 className="animate-spin" size={32} />

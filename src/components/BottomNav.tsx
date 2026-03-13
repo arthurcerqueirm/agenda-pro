@@ -16,7 +16,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
     ] as const
 
     return (
-        <nav className="ios-bottom-nav">
+        <nav className="ios-bottom-nav md:hidden">
             {tabs.map(({ id, label, icon: Icon }) => (
                 <button
                     key={id}
