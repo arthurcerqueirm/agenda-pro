@@ -124,6 +124,23 @@ export const Login: React.FC = () => {
 
   const slide = PREVIEW_SLIDES[slideIdx]
 
+  const getErrorMessage = (error: any) => {
+    const message = error.message || ''
+    if (message.includes('Invalid login credentials')) {
+      return 'E-mail ou senha incorretos. Verifique seus dados e tente novamente.'
+    }
+    if (message.includes('Email not confirmed')) {
+      return 'E-mail ainda não confirmado. Verifique sua caixa de entrada.'
+    }
+    if (message.includes('User not found')) {
+      return 'Não encontramos uma conta com este e-mail.'
+    }
+    if (message.includes('E-mail não está liberado')) {
+      return 'Acesso não autorizado. Verifique se sua assinatura está ativa.'
+    }
+    return message || 'Ocorreu um erro inesperado. Tente novamente.'
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLocalError(null)
@@ -136,12 +153,11 @@ export const Login: React.FC = () => {
       } else {
         await sendPasswordResetEmail(email)
         setIsSuccess(true)
-        setLocalError('E-mail enviado! Verifique sua caixa de entrada para criar sua senha.')
-        setTimeout(() => setIsLogin(true), 4000)
+        setLocalError('E-mail de recuperação enviado! Verifique sua caixa de entrada.')
       }
     } catch (error: any) {
       console.error('Auth error:', error)
-      setLocalError(error.message || 'Ocorreu um erro na autenticação')
+      setLocalError(getErrorMessage(error))
     } finally {
       setIsLoading(false)
     }
@@ -251,10 +267,13 @@ export const Login: React.FC = () => {
                   </label>
                   <button
                     type="button"
-                    onClick={() => setIsLogin(false)}
-                    className="text-[11px] font-bold text-primary hover:text-primary-dark transition-colors"
+                    onClick={() => {
+                      setIsLogin(false)
+                      setLocalError(null)
+                    }}
+                    className="text-[11px] font-bold text-primary hover:underline transition-all"
                   >
-                    Esqueci minha senha?
+                    Esqueceu sua senha?
                   </button>
                 </div>
                 <div className="relative">
@@ -359,7 +378,7 @@ export const Login: React.FC = () => {
               onMouseEnter={e => (e.currentTarget.style.color = '#1565C0')}
               onMouseLeave={e => (e.currentTarget.style.color = '#1A73E8')}
             >
-              {isLogin ? 'Primeiro acesso ao sistema? Gerar senha →' : '← Voltar para o Login'}
+              {isLogin ? 'Primeiro acesso ou Esqueceu a senha? Clique aqui →' : '← Voltar para o Login'}
             </button>
           </div>
 

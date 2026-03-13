@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,35 +8,34 @@ export default {
     extend: {
       colors: {
         primary: {
-          light: '#B5D4F4',   // Avatares
-          DEFAULT: '#1A73E8', // Cor primária
-          dark: '#1565C0',    // Admin header
+          light: '#E8F4FD',   // Bg Light
+          DEFAULT: '#1A73E8', // Primary
+          dark: '#1565C0',    // Header/Dark
         },
         accent: {
-          bg: '#F0FAF8',      // Bg teal
-          DEFAULT: '#0D9E8A', // Em dia, sucesso
+          light: '#F0FAF8',   // Bg Teal
+          DEFAULT: '#0D9E8A', // Accent
         },
         surface: {
-          light: '#E8F4FD',   // Bg light
-          DEFAULT: '#F8FAFB', // Fundo cards
-          neutral: '#F5F5F5', // Fundo alternativo
+          light: '#F8FAFB',   // Fundo Cards
+          neutral: '#F5F5F5', // Bordas e Divisores
+          DEFAULT: '#F8FAFB',
         },
         danger: {
-          light: '#FEE2E2',   // Fundo de erro
-          DEFAULT: '#E55B5B', // Cancelar / Alerta
-          dark: '#DC2626',    // Hover de alerta
+          DEFAULT: '#E55B5B', // Alerta
         },
         warning: {
-          DEFAULT: '#F59E0B', // Inadimplente
+          DEFAULT: '#F59E0B', // Destaque (Badge)
         },
         dark: {
-          DEFAULT: '#1A1A2E',
-          muted: '#6B7280',
+          DEFAULT: '#1A1A2E', // Texto Principal
+          muted: '#6B7280',   // Texto Secundário
         },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        display: ['Outfit', 'sans-serif'],
+        display: ['Poppins', 'sans-serif'],
+        data: ['DM Sans', 'sans-serif'],
       },
       borderRadius: {
         'ios': '20px',

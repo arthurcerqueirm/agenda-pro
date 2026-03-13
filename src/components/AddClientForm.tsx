@@ -40,7 +40,7 @@ export const AddClientForm: React.FC<AddClientFormProps> = ({ onSuccess, onCance
         } catch (err: any) {
             console.error(err)
             if (err instanceof z.ZodError) {
-                setError(err.errors[0].message)
+                setError(err.issues[0]?.message || 'Dados inválidos.')
             } else {
                 setError(err.message || 'Erro ao cadastrar cliente.')
             }
