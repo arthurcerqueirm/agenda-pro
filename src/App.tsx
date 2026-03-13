@@ -9,6 +9,7 @@ import { useAuth } from './context/AuthContext'
 import { useSettings } from './context/SettingsContext'
 import { useNotifications } from './hooks/useNotifications'
 import { Login } from './pages/Login'
+import { LandingPage } from './pages/LandingPage'
 
 // Puxar as rotas de Super Admin
 import { SuperAdminLogin } from './pages/SuperAdmin/SuperAdminLogin'
@@ -57,12 +58,12 @@ const MainApp = () => {
 function App() {
     const [isSuperAdminAuthed, setIsSuperAdminAuthed] = useState(false)
 
-    const isBackoffice = window.location.pathname.startsWith('/backoffice')
-    const isUpdatePassword = window.location.pathname.startsWith('/update-password')
+    const path = window.location.pathname
+    const isBackoffice = path.startsWith('/backoffice')
+    const isUpdatePassword = path.startsWith('/update-password')
+    const isApp = path.startsWith('/app')
 
-    if (isUpdatePassword) {
-        return <UpdatePassword />
-    }
+    if (isUpdatePassword) return <UpdatePassword />
 
     if (isBackoffice) {
         if (!isSuperAdminAuthed) {
@@ -71,8 +72,11 @@ function App() {
         return <SuperAdminDashboard onLogout={() => setIsSuperAdminAuthed(false)} />
     }
 
-    // Caso não seja /backoffice, roda o app normal SaaS
-    return <MainApp />
+    // /app -> main SaaS app
+    if (isApp) return <MainApp />
+
+    // / -> Landing Page
+    return <LandingPage />
 }
 
 export default App
