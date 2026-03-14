@@ -105,6 +105,7 @@ export const ClientList: React.FC = () => {
                     <p className="text-dark/40 text-sm font-medium">{isLoading ? 'Carregando...' : `${clients.length} no total`}</p>
                 </div>
                 <button
+                    id="tour-add-client"
                     onClick={() => setIsAddingClient(true)}
                     className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary active:scale-95 transition-transform"
                 >

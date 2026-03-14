@@ -337,6 +337,7 @@ export const AdminPanel: React.FC = () => {
                             {group.items.map((item, j) => (
                                 <button
                                     key={j}
+                                    id={item.label === 'Gestão de Serviços' ? 'tour-manage-services' : item.label === 'Horário de Funcionamento' ? 'tour-manage-hours' : undefined}
                                     onClick={item.onClick}
                                     className="w-full px-5 py-4 flex items-center justify-between active:bg-surface-light transition-colors group"
                                 >

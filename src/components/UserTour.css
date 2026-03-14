@@ -1,0 +1,118 @@
+.tour-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.tour-mask {
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+    transition: all 0.4s ease-in-out;
+}
+
+.tour-message-box {
+    width: 320px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px;
+    padding: 24px;
+    box-shadow:
+        0 25px 50px -12px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(0, 0, 0, 0.05);
+    pointer-events: auto;
+    z-index: 10000;
+    transition: top 0.4s ease-in-out, left 0.4s ease-in-out;
+}
+
+.tour-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.tour-step-info {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--primary);
+    background: rgba(var(--primary-rgb), 0.1);
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.tour-close {
+    color: rgba(0, 0, 0, 0.3);
+    transition: color 0.2s;
+}
+
+.tour-close:hover {
+    color: var(--danger);
+}
+
+.tour-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.tour-description {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 24px;
+}
+
+.tour-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tour-btn-skip {
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(0, 0, 0, 0.4);
+    transition: color 0.2s;
+}
+
+.tour-btn-skip:hover {
+    color: var(--dark);
+}
+
+.tour-btn-next {
+    display: flex;
+    align-items: center;
+    background: var(--primary);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 16px rgba(var(--primary-rgb), 0.2);
+    transition: all 0.2s;
+}
+
+.tour-btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(var(--primary-rgb), 0.3);
+}
+
+.tour-btn-next:active {
+    transform: translateY(0);
+}
+
+/* Mobile adjustments */
+@media (max-width: 767px) {
+    .tour-message-box {
+        width: calc(100% - 32px);
+        max-width: 340px;
+    }
+}

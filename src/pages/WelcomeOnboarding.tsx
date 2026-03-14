@@ -66,7 +66,7 @@ export const WelcomeOnboarding: React.FC = () => {
 
             if (response.data.session) {
                 console.log('WelcomeOnboarding: SUCESSO - Sessão iniciada');
-                window.location.href = '/app';
+                window.location.href = '/setup';
             } else if (response.data.user) {
                 // Caso o Supabase esteja com email_confirm habilitado:
                 console.log('WelcomeOnboarding: Usuário criado, aguardando confirmação ou autologin.');

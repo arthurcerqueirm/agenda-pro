@@ -27,6 +27,7 @@ const SideNav: React.FC<SideNavProps> = ({ activeTab, onTabChange }) => {
                 {tabs.map(({ id, label, icon: Icon }) => (
                     <button
                         key={id}
+                        id={`tour-${id}-desktop`}
                         onClick={() => onTabChange(id)}
                         className={cn(
                             "w-full flex items-center space-x-4 px-4 py-4 rounded-xl transition-all duration-200 group relative overflow-hidden",

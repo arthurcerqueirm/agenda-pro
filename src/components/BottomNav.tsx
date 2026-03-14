@@ -20,6 +20,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
             {tabs.map(({ id, label, icon: Icon }) => (
                 <button
                     key={id}
+                    id={`tour-${id}-mobile`}
                     onClick={() => onTabChange(id)}
                     className={cn(
                         "flex flex-col items-center justify-center transition-all duration-200 w-16 h-full",

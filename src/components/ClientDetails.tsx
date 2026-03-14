@@ -188,6 +188,7 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ client, onClose, o
                             <Package size={14} className="mr-2" /> Pacotes
                         </h4>
                         <button
+                            id="tour-add-package"
                             onClick={() => setIsCreatingPackage(true)}
                             className="text-[10px] uppercase font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-full flex items-center transition-colors"
                         >

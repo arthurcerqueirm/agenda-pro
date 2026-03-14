@@ -419,6 +419,7 @@ export const CalendarView: React.FC = () => {
 
             {/* Floating Action Button (New Quick Record) */}
             <button
+                id="tour-new-apt"
                 onClick={() => {
                     setSelectedSlot(null)
                     setIsScheduling(true)
