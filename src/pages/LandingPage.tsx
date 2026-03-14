@@ -217,11 +217,14 @@ export const LandingPage: React.FC = () => {
                 <div className="container">
                     <div className="hero-content">
                         <div className="hero-badge"><div className="hero-badge-dot"></div>Usado por +500 profissionais no Brasil</div>
-                        <h1>Pare de perder clientes.<br /><span className="highlight">Comece a usar a Agenda Pro.</span></h1>
-                        <p className="hero-description">A agenda inteligente para empreendedores e autônomos que querem organizar, atender melhor e crescer — tudo em um só lugar.</p>
+                        <h1>Organize sua agenda, profissionalize o seu<br /><span className="highlight">atendimento e fature mais.</span></h1>
+                        <p className="hero-description">A ferramenta completa para empreendedores e autônomos que buscam organização, eficiência e crescimento profissional.</p>
                         <div className="hero-actions">
-                            <button onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }} className="btn btn-primary">Começar agora →</button>
-                            <a href="#funcionalidades" className="btn btn-outline" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }}>Ver funcionalidades</a>
+                            <button onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }} className="btn btn-primary">Assinar agora — 7 dias de garantia →</button>
+                            <a href="#funcionalidades" className="hero-secondary-link" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }}>Conhecer funcionalidades</a>
+                        </div>
+                        <div className="hero-risk-reduction">
+                            <span className="risk-text">✨ Garantia total de 7 dias — sem burocracia</span>
                         </div>
                         <div className="hero-trust">
                             <span className="hero-trust-item">
@@ -230,11 +233,11 @@ export const LandingPage: React.FC = () => {
                             </span>
                             <span className="hero-trust-item">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#0D9E8A" /><path d="M5 8l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                                Suporte dedicado
+                                Setup em 2 minutos
                             </span>
                             <span className="hero-trust-item">
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#0D9E8A" /><path d="M5 8l2 2 4-4" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                                Planos a partir de R$16,42/mês
+                                Suporte 24/7 via WhatsApp
                             </span>
                         </div>
                     </div>
@@ -440,8 +443,8 @@ export const LandingPage: React.FC = () => {
 
                     <div className="pricing-grid">
                         <div className="pricing-card reveal reveal-delay-1">
-                            <h3 className="pricing-plan-name">Mensal</h3>
-                            <div className="pricing-old-price">R$ 39,90</div>
+                            <h3 className="pricing-plan-name">Plano Mensal</h3>
+                            <div className="pricing-old-price">De R$ 39,90/mês</div>
                             <div className="pricing-price">R$ 19,90<span className="pricing-price-period">/mês</span></div>
                             <div className="pricing-discount-badge">50% OFF</div>
                             <div className="pricing-divider"></div>
@@ -449,34 +452,39 @@ export const LandingPage: React.FC = () => {
                                 <li>✅ Agendamentos Ilimitados</li>
                                 <li>✅ Gestão de Clientes</li>
                                 <li>✅ Relatórios Básicos</li>
-                                <li>✅ Suporte por Chat</li>
+                                <li>✅ Suporte Premium</li>
                             </ul>
-                            <button onClick={() => window.location.href = 'https://pay.cakto.com.br/bo4xrwq_803782'} className="btn btn-outline" style={{ width: '100%' }}>Assinar Agora</button>
+                            <div className="pricing-cta-wrapper">
+                                <button onClick={() => window.location.href = 'https://pay.cakto.com.br/bo4xrwq_803782'} className="btn btn-outline" style={{ width: '100%' }}>Assinar Mensal</button>
+                                <span className="pricing-micro-copy">Cancelamento fácil a qualquer momento</span>
+                            </div>
                         </div>
 
                         <div className="pricing-card featured reveal reveal-delay-2">
-                            <div className="pricing-popular-badge">MAIS VANTAJOSO</div>
-                            <h3 className="pricing-plan-name">Anual</h3>
-                            <div className="pricing-old-price">R$ 478,80</div>
+                            <div className="pricing-popular-badge">MAIS ESCOLHIDO</div>
+                            <h3 className="pricing-plan-name">Plano Anual</h3>
+                            <div className="pricing-old-price">De R$ 478,80/ano</div>
                             <div className="pricing-price">R$ 197,00<span className="pricing-price-period">/ano</span></div>
-                            <div className="pricing-equivalent">R$ 16,42/mês</div>
-                            <div className="pricing-discount-badge">ECONOMIZE 59%</div>
+                            <div className="pricing-equivalent">Equivale a <strong>R$ 16,42/mês</strong></div>
+                            <div className="pricing-economy-badge">Economize R$ 41,80 (2 meses grátis)</div>
                             <div className="pricing-divider"></div>
                             <ul className="pricing-features">
                                 <li>🔥 Tudo do Mensal</li>
                                 <li>🔥 Relatórios Avançados</li>
-                                <li>🔥 Painel Financeiro Premium</li>
+                                <li>🔥 Painel Financeiro Pro</li>
                                 <li>🔥 Suporte Prioritário</li>
-                                <li>🔥 Multi-usuários (Em breve)</li>
                             </ul>
-                            <button onClick={() => window.location.href = 'https://pay.cakto.com.br/36rjwdm'} className="btn btn-accent" style={{ width: '100%' }}>Assinar Agora</button>
+                            <div className="pricing-cta-wrapper">
+                                <button onClick={() => window.location.href = 'https://pay.cakto.com.br/36rjwdm'} className="btn btn-accent" style={{ width: '100%' }}>Garantir desconto anual</button>
+                                <span className="pricing-micro-copy">Pagamento seguro · Cancelamento fácil</span>
+                            </div>
                         </div>
                     </div>
 
                     <div className="pricing-footer reveal" style={{ marginTop: '40px' }}>
-                        <div className="pricing-footer-item">🔒 Pagamento Seguro</div>
-                        <div className="pricing-footer-item">💳 Sem burocracia</div>
-                        <div className="pricing-footer-item">✨ 7 dias de garantia</div>
+                        <div className="pricing-footer-item">🔒 Pagamento 100% Seguro</div>
+                        <div className="pricing-footer-item">💳 Sem burocracia no cancelamento</div>
+                        <div className="pricing-footer-item">✨ 7 dias de garantia incondicional</div>
                     </div>
                 </div>
             </section>
@@ -487,35 +495,38 @@ export const LandingPage: React.FC = () => {
                     <h2 className="section-title reveal">Depoimentos</h2>
                     <div className="testimonials-grid">
                         <div className="testimonial-card reveal reveal-delay-1">
-                            <div className="testimonial-stars">★★★★★</div>
-                            <p className="testimonial-text">"Minha vida mudou depois do Agenda Pro. Consegui finalmente organizar meus horários e nunca mais esquecer um serviço."</p>
+                            <div className="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                            <h4 className="testimonial-result">"Aumentei 40% meus agendamentos em 3 semanas"</h4>
+                            <p className="testimonial-text">"Minha vida mudou depois do Agenda Pro. Consegui finalmente organizar meus horários e nunca mais perder cliente por esquecimento."</p>
                             <div className="testimonial-author">
                                 <div className="testimonial-avatar ta-blue">RS</div>
                                 <div>
                                     <div className="testimonial-name">Ricardo Silva</div>
-                                    <div className="testimonial-role">Barbeiro</div>
+                                    <div className="testimonial-role">Barbeiro · São Paulo</div>
                                 </div>
                             </div>
                         </div>
                         <div className="testimonial-card reveal reveal-delay-2">
-                            <div className="testimonial-stars">★★★★★</div>
-                            <p className="testimonial-text">"O melhor custo-benefício que já encontrei. O painel financeiro me ajuda a ter clareza total das minhas metas."</p>
+                            <div className="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                            <h4 className="testimonial-result">"Parei de perder tempo cobrando pendências"</h4>
+                            <p className="testimonial-text">"O melhor custo-benefício. O painel financeiro me ajuda a ter clareza total das minhas metas e quem ainda não pagou."</p>
                             <div className="testimonial-author">
                                 <div className="testimonial-avatar ta-teal">AM</div>
                                 <div>
                                     <div className="testimonial-name">Alice Mendes</div>
-                                    <div className="testimonial-role">Nutricionista</div>
+                                    <div className="testimonial-role">Nutricionista · Curitiba</div>
                                 </div>
                             </div>
                         </div>
                         <div className="testimonial-card reveal reveal-delay-3">
-                            <div className="testimonial-stars">★★★★★</div>
-                            <p className="testimonial-text">"A facilidade de uso é incrível. Em poucos minutos já estava com toda a minha semana organizada e sob controle."</p>
+                            <div className="testimonial-stars">⭐⭐⭐⭐⭐</div>
+                            <h4 className="testimonial-result">"Recuperei meu tempo livre e minha organização"</h4>
+                            <p className="testimonial-text">"A facilidade é incrível. Em poucos minutos já estava com toda a minha semana organizada. Agora foco 100% nas minhas alunas."</p>
                             <div className="testimonial-author">
                                 <div className="testimonial-avatar ta-amber">JP</div>
                                 <div>
                                     <div className="testimonial-name">João Paulo</div>
-                                    <div className="testimonial-role">Personal Trainer</div>
+                                    <div className="testimonial-role">Personal Trainer · Rio de Janeiro</div>
                                 </div>
                             </div>
                         </div>
@@ -551,12 +562,25 @@ export const LandingPage: React.FC = () => {
             {/* FINAL CTA */}
             <section className="final-cta">
                 <div className="container">
-                    <h2 className="section-title reveal">Transforme sua gestão hoje</h2>
-                    <p className="section-subtitle reveal reveal-delay-1" style={{ color: 'rgba(255,255,255,0.7)' }}>Junte-se a centenas de profissionais que já usam o Agenda Pro e profissionalize seu negócio.</p>
-                    <div className="final-cta-actions reveal reveal-delay-2" style={{ marginTop: '32px' }}>
-                        <a href="#precos" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }} className="btn btn-white">Escolher meu Plano</a>
+                    <h2 className="section-title reveal">Pronto para profissionalizar sua<br />gestão e faturar mais?</h2>
+
+                    <div className="final-cta-benefits reveal reveal-delay-1">
+                        <div className="cta-benefit">✅ Gestão de Clientes</div>
+                        <div className="cta-benefit">✅ Controle de Ganhos</div>
+                        <div className="cta-benefit">✅ Agenda Inteligente</div>
                     </div>
-                    <p className="final-cta-note reveal reveal-delay-3">Planos a partir de R$16,42/mês • 7 dias de garantia total</p>
+
+                    <p className="section-subtitle reveal reveal-delay-1" style={{ color: 'rgba(255,255,255,0.7)', margin: '0 auto' }}>Junte-se a +2.000 profissionais de sucesso.</p>
+
+                    <div className="final-cta-actions reveal reveal-delay-2" style={{ marginTop: '32px' }}>
+                        <a href="#precos" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }} className="btn btn-white">Assinar Agora com Garantia</a>
+                    </div>
+
+                    <div className="final-cta-trust reveal reveal-delay-3">
+                        <span>🛡️ Pagamento 100% Seguro</span>
+                        <span className="trust-divider">•</span>
+                        <span>✨ 7 Dias de Garantia Total</span>
+                    </div>
                 </div>
             </section>
 
