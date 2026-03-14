@@ -8,28 +8,37 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          light: '#E8F4FD',   // Bg Light
-          DEFAULT: '#1A73E8', // Primary
-          dark: '#1565C0',    // Header/Dark
+          light: '#E8F4FD',
+          DEFAULT: '#1A73E8',
+          dark: '#1565C0',
         },
         accent: {
-          light: '#F0FAF8',   // Bg Teal
-          DEFAULT: '#0D9E8A', // Accent
+          light: '#F0FAF8',
+          DEFAULT: '#0D9E8A',
         },
-        surface: {
-          light: '#F8FAFB',   // Fundo Cards
-          neutral: '#F5F5F5', // Bordas e Divisores
-          DEFAULT: '#F8FAFB',
+        success: {
+          light: '#ECFDF5',
+          DEFAULT: '#10B981',
+          dark: '#047857',
         },
         danger: {
-          DEFAULT: '#E55B5B', // Alerta
+          light: '#FEF2F2',
+          DEFAULT: '#EF4444',
+          dark: '#B91C1C',
         },
         warning: {
-          DEFAULT: '#F59E0B', // Destaque (Badge)
+          light: '#FFFBEB',
+          DEFAULT: '#F59E0B',
+          dark: '#B45309',
+        },
+        surface: {
+          light: '#F8FAFB',
+          neutral: '#F5F5F5',
+          DEFAULT: '#F8FAFB',
         },
         dark: {
-          DEFAULT: '#1A1A2E', // Texto Principal
-          muted: '#6B7280',   // Texto Secundário
+          DEFAULT: '#1A1A2E',
+          muted: '#6B7280',
         },
       },
       fontFamily: {

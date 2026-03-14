@@ -59,6 +59,18 @@ const fetchClients = async () => {
     }))
 }
 
+const getAvatarColor = (id: string) => {
+    const colors = [
+        { bg: 'bg-primary-light', text: 'text-primary-dark' },
+        { bg: 'bg-success-light', text: 'text-success-dark' },
+        { bg: 'bg-warning-light', text: 'text-warning-dark' },
+        { bg: 'bg-danger-light', text: 'text-danger-dark' },
+        { bg: 'bg-accent-light', text: 'text-accent' },
+    ]
+    const index = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % colors.length
+    return colors[index]
+}
+
 export const ClientList: React.FC = () => {
     const [search, setSearch] = useState('')
     const [filter, setFilter] = useState<'all' | 'active' | 'debtor'>('all')
@@ -145,59 +157,66 @@ export const ClientList: React.FC = () => {
                         <AlertCircle size={40} />
                         <p className="font-bold text-center">Ocorreu um erro ao carregar os clientes.<br /><span className="text-xs font-normal">Tente novamente mais tarde.</span></p>
                     </div>
-                ) : filteredClients.length > 0 ? filteredClients.map((client: any) => (
-                    <div
-                        key={client.id}
-                        className="ios-card group active:scale-[0.98] transition-all cursor-pointer"
-                        onClick={() => {
-                            setSelectedClient(client)
-                            setIsViewingDetails(true)
-                        }}
-                    >
-                        <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 bg-danger-light rounded-2xl flex items-center justify-center font-display font-bold text-xl text-danger-dark shadow-inner uppercase">
-                                {client.name[0]}
-                            </div>
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                        <h4 className="font-bold text-dark text-lg leading-none mb-1">{client.name}</h4>
-                                        {client.pending_amount > 0 && (
-                                            <div className="flex items-center bg-danger/10 text-danger-dark px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
-                                                <div className="w-1.5 h-1.5 bg-danger rounded-full mr-1" />
-                                                PENDENTE
-                                            </div>
-                                        )}
-                                    </div>
-                                    <button className="p-2 -mr-2 text-dark/20 group-hover:text-dark/40 transition-colors">
-                                        <MoreVertical size={18} />
-                                    </button>
-                                </div>
-                                <div className="flex items-center text-xs text-dark/40 font-medium space-x-2">
-                                    <Phone size={12} />
-                                    <span>{client.phone || 'Sem telefone'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 pt-4 border-t border-surface-neutral/50 flex items-center justify-between">
-                            <div className="flex flex-col">
-                                <span className="text-[10px] uppercase font-bold text-dark/20">Status financeiro</span>
-                                <span className={cn(
-                                    "text-xs font-bold",
-                                    client.pending_amount > 0 ? "text-danger-dark" : "text-primary"
+                ) : filteredClients.length > 0 ? filteredClients.map((client: any) => {
+                    const avatarColor = getAvatarColor(client.id)
+                    return (
+                        <div
+                            key={client.id}
+                            className="ios-card group active:scale-[0.98] transition-all cursor-pointer"
+                            onClick={() => {
+                                setSelectedClient(client)
+                                setIsViewingDetails(true)
+                            }}
+                        >
+                            <div className="flex items-center space-x-4">
+                                <div className={cn(
+                                    "w-14 h-14 rounded-2xl flex items-center justify-center font-display font-bold text-xl shadow-inner uppercase",
+                                    avatarColor.bg,
+                                    avatarColor.text
                                 )}>
-                                    {client.pending_amount > 0 ? `Deve R$ ${client.pending_amount}` : 'Em dia'}
-                                </span>
+                                    {client.name[0]}
+                                </div>
+                                <div className="flex-1">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <h4 className="font-bold text-dark text-lg leading-none mb-1">{client.name}</h4>
+                                            {client.pending_amount > 0 && (
+                                                <div className="flex items-center bg-danger/10 text-danger-dark px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
+                                                    <div className="w-1.5 h-1.5 bg-danger rounded-full mr-1" />
+                                                    PENDENTE
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button className="p-2 -mr-2 text-dark/20 group-hover:text-dark/40 transition-colors">
+                                            <MoreVertical size={18} />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center text-xs text-dark/40 font-medium space-x-2">
+                                        <Phone size={12} />
+                                        <span>{client.phone || 'Sem telefone'}</span>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex space-x-2">
-                                <Button variant="ghost" className="h-9 px-4 text-xs bg-primary/5 hover:bg-primary/10">
-                                    Ver Perfil
-                                </Button>
+
+                            <div className="mt-4 pt-4 border-t border-surface-neutral/50 flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] uppercase font-bold text-dark/20">Status financeiro</span>
+                                    <span className={cn(
+                                        "text-xs font-bold",
+                                        client.pending_amount > 0 ? "text-danger-dark" : "text-success-dark"
+                                    )}>
+                                        {client.pending_amount > 0 ? `Deve R$ ${client.pending_amount}` : 'Em dia'}
+                                    </span>
+                                </div>
+                                <div className="flex space-x-2">
+                                    <Button variant="ghost" className="h-9 px-4 text-xs bg-primary/5 hover:bg-primary/10">
+                                        Ver Perfil
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )) : (
+                    )
+                }) : (
                     <div className="py-20 text-center space-y-4 opacity-40">
                         <div className="w-16 h-16 bg-surface-neutral rounded-full flex items-center justify-center mx-auto">
                             <Search size={32} />

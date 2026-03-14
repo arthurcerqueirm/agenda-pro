@@ -315,11 +315,6 @@ export const LandingPage: React.FC = () => {
                     <p className="section-subtitle reveal reveal-delay-2">Esqueça a bagunça do WhatsApp e das planilhas. Centralize sua gestão em uma plataforma pensada para você.</p>
 
                     <div className="features-grid">
-                        <div className="feature-card reveal reveal-delay-1">
-                            <div className="feature-icon fi-blue">📅</div>
-                            <h3 className="feature-title">Agendamento Online</h3>
-                            <p className="feature-desc">Link exclusivo para seu cliente agendar sozinho 24h por dia, sem precisar te chamar.</p>
-                        </div>
                         <div className="feature-card reveal reveal-delay-2">
                             <div className="feature-icon fi-teal">👥</div>
                             <h3 className="feature-title">Gestão de Clientes</h3>
@@ -329,11 +324,6 @@ export const LandingPage: React.FC = () => {
                             <div className="feature-icon fi-amber">💰</div>
                             <h3 className="feature-title">Controle Financeiro</h3>
                             <p className="feature-desc">Veja quanto faturou no dia, na semana e no mês com relatórios automáticos.</p>
-                        </div>
-                        <div className="feature-card reveal reveal-delay-1">
-                            <div className="feature-icon fi-teal">📱</div>
-                            <h3 className="feature-title">Lembretes Automáticos</h3>
-                            <p className="feature-desc">Reduza em até 80% as faltas com lembretes inteligentes por WhatsApp.</p>
                         </div>
                         <div className="feature-card reveal reveal-delay-2">
                             <div className="feature-icon fi-blue">📊</div>
@@ -365,15 +355,15 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="step-card reveal reveal-delay-2">
                             <div className="step-number">2</div>
-                            <div className="step-icon">🔗</div>
-                            <h3 className="step-title">Divulgue seu link</h3>
-                            <p className="step-desc">Coloque o link na sua bio do Instagram ou envie para seus clientes.</p>
+                            <div className="step-icon">📆</div>
+                            <h3 className="step-title">Organize sua agenda</h3>
+                            <p className="step-desc">Adicione seus compromissos e tenha visão total do seu dia e semana.</p>
                         </div>
                         <div className="step-card reveal reveal-delay-3">
                             <div className="step-number">3</div>
                             <div className="step-icon">🚀</div>
                             <h3 className="step-title">Veja crescer</h3>
-                            <p className="step-desc">Receba notificações de novos agendamentos e foque em atender.</p>
+                            <p className="step-desc">Acompanhe seu faturamento e foque em atender seus clientes com qualidade.</p>
                         </div>
                     </div>
                 </div>
@@ -474,7 +464,7 @@ export const LandingPage: React.FC = () => {
                             <div className="pricing-divider"></div>
                             <ul className="pricing-features">
                                 <li>🔥 Tudo do Mensal</li>
-                                <li>🔥 Lembretes WhatsApp</li>
+                                <li>🔥 Relatórios Avançados</li>
                                 <li>🔥 Painel Financeiro Premium</li>
                                 <li>🔥 Suporte Prioritário</li>
                                 <li>🔥 Multi-usuários (Em breve)</li>
@@ -498,7 +488,7 @@ export const LandingPage: React.FC = () => {
                     <div className="testimonials-grid">
                         <div className="testimonial-card reveal reveal-delay-1">
                             <div className="testimonial-stars">★★★★★</div>
-                            <p className="testimonial-text">"Minha vida mudou depois do Agenda Pro. Meus clientes adoram a facilidade de agendar direto pelo link no Instagram."</p>
+                            <p className="testimonial-text">"Minha vida mudou depois do Agenda Pro. Consegui finalmente organizar meus horários e nunca mais esquecer um serviço."</p>
                             <div className="testimonial-author">
                                 <div className="testimonial-avatar ta-blue">RS</div>
                                 <div>
@@ -520,7 +510,7 @@ export const LandingPage: React.FC = () => {
                         </div>
                         <div className="testimonial-card reveal reveal-delay-3">
                             <div className="testimonial-stars">★★★★★</div>
-                            <p className="testimonial-text">"Os lembretes automáticos reduziram drasticamente as faltas dos meus alunos. Excelente ferramenta!"</p>
+                            <p className="testimonial-text">"A facilidade de uso é incrível. Em poucos minutos já estava com toda a minha semana organizada e sob controle."</p>
                             <div className="testimonial-author">
                                 <div className="testimonial-avatar ta-amber">JP</div>
                                 <div>
