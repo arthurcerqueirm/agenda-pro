@@ -175,6 +175,15 @@ export const LandingPage: React.FC = () => {
                     <a href="#" className="nav-logo">
                         <img src="/logo.png" alt="Agenda Pro" />
                     </a>
+                    <ul className="nav-links desktop-only">
+                        <li><a href="#funcionalidades" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }}>Funcionalidades</a></li>
+                        <li><a href="#como-funciona" onClick={(e) => { e.preventDefault(); scrollToSection('como-funciona'); }}>Como funciona</a></li>
+                        <li><a href="#precos" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }}>Preços</a></li>
+                        <li><a href="#faq" onClick={(e) => { e.preventDefault(); scrollToSection('faq'); }}>FAQ</a></li>
+                        <li className="nav-divider"></li>
+                        <li><button className="nav-btn-link" onClick={goToApp}>Acesse a plataforma</button></li>
+                        <li className="nav-cta-item"><a href="#precos" className="nav-cta" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }}>Assinar agora</a></li>
+                    </ul>
                     <div className={`nav-hamburger ${menuOpen ? 'hidden' : ''}`} onClick={() => setMenuOpen(true)}>
                         <span></span><span></span><span></span>
                     </div>

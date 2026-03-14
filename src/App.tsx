@@ -13,6 +13,7 @@ import { LandingPage } from './pages/LandingPage'
 
 import { SuperAdminDashboard } from './pages/SuperAdmin/SuperAdminDashboard'
 import { UpdatePassword } from './pages/UpdatePassword'
+import { WelcomeOnboarding } from './pages/WelcomeOnboarding'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
 type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
@@ -59,11 +60,12 @@ function App() {
     const path = window.location.pathname
     const isBackoffice = path.startsWith('/backoffice')
     const isUpdatePassword = path.startsWith('/update-password')
+    const isWelcome = path.startsWith('/welcome')
     const isApp = path.startsWith('/app')
 
     // Redirect logged-in users from landing to /app
     useEffect(() => {
-        if (!isApp && !isBackoffice && !isUpdatePassword) {
+        if (!isApp && !isBackoffice && !isUpdatePassword && !isWelcome) {
             import('./utils/supabase').then(({ supabase }) => {
                 supabase.auth.getSession().then(({ data: { session } }) => {
                     if (session) window.location.href = '/app'
@@ -74,9 +76,9 @@ function App() {
 
     if (isUpdatePassword) return <UpdatePassword />
 
-    if (isUpdatePassword) return <UpdatePassword />
+    if (isWelcome) return <WelcomeOnboarding />
 
-// /app -> main SaaS app
+    // /app -> main SaaS app
     if (isApp) return (
         <ErrorBoundary>
             <MainApp />

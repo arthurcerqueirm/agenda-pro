@@ -11,6 +11,7 @@ interface AuthContextType {
     updateProfileName: (name: string) => Promise<void>
     updateUserPassword: (password: string) => Promise<void>
     connectGoogleCalendar: () => Promise<void>
+    signUp: (email: string, password: string) => Promise<void>
     isAdmin: boolean
     signOut: () => Promise<void>
 }
@@ -152,6 +153,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error
     }
 
+    const signUp = async (email: string, password: string) => {
+        await checkAuthorization(email)
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        })
+        if (error) throw error
+    }
+
     const signOut = async () => {
         const { error } = await supabase.auth.signOut()
         if (error) throw error
@@ -160,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isAdmin = user?.email?.toLowerCase() === (import.meta.env.VITE_ADMIN_EMAIL || '').toLowerCase()
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, isAdmin, signInWithEmail, sendPasswordResetEmail, updateProfileName, updateUserPassword, connectGoogleCalendar, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, isAdmin, signInWithEmail, signUp, sendPasswordResetEmail, updateProfileName, updateUserPassword, connectGoogleCalendar, signOut }}>
             {children}
         </AuthContext.Provider>
     )

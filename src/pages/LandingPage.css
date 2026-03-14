@@ -419,6 +419,10 @@ section[id] {
     width: auto;
 }
 
+.landing-page-exact .nav-links-container {
+    display: none;
+}
+
 .landing-page-exact .nav-links {
     display: flex;
     align-items: center;
@@ -1694,8 +1698,8 @@ section[id] {
 }
 
 @media (max-width: 768px) {
-    .landing-page-exact .nav-links {
-        display: none;
+    .landing-page-exact .nav-links.desktop-only {
+        display: none !important;
     }
 
     /* Mobile Menu Full Screen Refactor */
@@ -1707,9 +1711,7 @@ section[id] {
         right: 0;
         bottom: 0;
         background: var(--white);
-        /* Forçar fundo totalmente sólido */
         z-index: 5000;
-        /* Garantir que fique acima de tudo, inclusive navbar scrolled */
         padding: 24px;
         flex-direction: column;
         overflow-y: auto;
@@ -1754,7 +1756,7 @@ section[id] {
         cursor: pointer;
     }
 
-    .landing-page-exact .nav-links {
+    .landing-page-exact .nav-links-container .nav-links {
         display: flex;
         flex-direction: column;
         align-items: center;
