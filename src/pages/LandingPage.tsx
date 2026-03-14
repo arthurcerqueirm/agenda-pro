@@ -8,6 +8,8 @@ export const LandingPage: React.FC = () => {
     const [faqOpen, setFaqOpen] = useState<number | null>(null);
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const carouselInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Common navigation and redirects
@@ -76,6 +78,18 @@ export const LandingPage: React.FC = () => {
         return () => window.removeEventListener('mousemove', moveCursor);
     }, []);
 
+    // Body scroll lock when menu is home
+    useEffect(() => {
+        if (menuOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [menuOpen]);
+
     // Navbar Scroll logic
     useEffect(() => {
         const handleScroll = () => {
@@ -114,6 +128,30 @@ export const LandingPage: React.FC = () => {
         return stopAutoplay;
     }, []);
 
+    const handleTouchStart = (e: React.TouchEvent) => {
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > 50;
+        const isRightSwipe = distance < -50;
+
+        if (isLeftSwipe) {
+            nextSlide();
+        } else if (isRightSwipe) {
+            prevSlide();
+        }
+
+        setTouchStart(null);
+        setTouchEnd(null);
+    };
+
     const getSlideState = (index: number) => {
         if (index === carouselIndex) return 'active';
         if (index === (carouselIndex - 1 + carouselItems.length) % carouselItems.length) return 'prev';
@@ -137,19 +175,30 @@ export const LandingPage: React.FC = () => {
                     <a href="#" className="nav-logo">
                         <img src="/logo.png" alt="Agenda Pro" />
                     </a>
-                    <ul className={`nav-links ${menuOpen ? 'open' : ''}`}>
-                        <li><a href="#funcionalidades" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); setMenuOpen(false); }}>Funcionalidades</a></li>
-                        <li><a href="#como-funciona" onClick={(e) => { e.preventDefault(); scrollToSection('como-funciona'); setMenuOpen(false); }}>Como funciona</a></li>
-                        <li><a href="#precos" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); setMenuOpen(false); }}>Preços</a></li>
-                        <li><a href="#faq" onClick={(e) => { e.preventDefault(); scrollToSection('faq'); setMenuOpen(false); }}>FAQ</a></li>
-                        <li><button className="nav-btn-link" onClick={goToApp}>Acesse a plataforma</button></li>
-                        <li><a href="#precos" className="nav-cta" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); setMenuOpen(false); }}>Assinar agora</a></li>
-                    </ul>
-                    <div className="nav-hamburger" onClick={() => setMenuOpen(!menuOpen)}>
+                    <div className={`nav-hamburger ${menuOpen ? 'hidden' : ''}`} onClick={() => setMenuOpen(true)}>
                         <span></span><span></span><span></span>
                     </div>
                 </div>
             </nav>
+
+            {/* MOBILE MENU OVERLAY */}
+            <div className={`nav-links-container ${menuOpen ? 'open' : ''}`}>
+                <div className="nav-menu-header">
+                    <a href="#" className="nav-logo">
+                        <img src="/logo.png" alt="Agenda Pro" />
+                    </a>
+                    <button className="nav-close" onClick={() => setMenuOpen(false)}>✕</button>
+                </div>
+                <ul className="nav-links">
+                    <li><a href="#funcionalidades" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); setMenuOpen(false); }}>Funcionalidades</a></li>
+                    <li><a href="#como-funciona" onClick={(e) => { e.preventDefault(); scrollToSection('como-funciona'); setMenuOpen(false); }}>Como funciona</a></li>
+                    <li><a href="#precos" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); setMenuOpen(false); }}>Preços</a></li>
+                    <li><a href="#faq" onClick={(e) => { e.preventDefault(); scrollToSection('faq'); setMenuOpen(false); }}>FAQ</a></li>
+                    <li className="nav-divider"></li>
+                    <li><button className="nav-btn-link" onClick={goToApp}>Acesse a plataforma</button></li>
+                    <li className="nav-cta-item"><a href="#precos" className="nav-cta" onClick={(e) => { e.preventDefault(); scrollToSection('precos'); setMenuOpen(false); }}>Assinar agora</a></li>
+                </ul>
+            </div>
 
             {/* HERO */}
             <section className="hero">
@@ -233,6 +282,7 @@ export const LandingPage: React.FC = () => {
                             {/* Duplicado para loop infinito */}
                             <div className="sp-icon"><div className="sp-icon-circle">✂️</div><span className="sp-icon-label">Barbeiros</span></div>
                             <div className="sp-icon"><div className="sp-icon-circle">💪</div><span className="sp-icon-label">Personal</span></div>
+                            <div className="sp-icon"><div className="sp-icon-circle">💆</div><span className="sp-icon-label">Massagista</span></div>
                             <div className="sp-icon"><div className="sp-icon-circle">🍎</div><span className="sp-icon-label">Nutris</span></div>
                             <div className="sp-icon"><div className="sp-icon-circle">🦷</div><span className="sp-icon-label">Dentistas</span></div>
                             <div className="sp-icon"><div className="sp-icon-circle">🎨</div><span className="sp-icon-label">Designers</span></div>
@@ -326,7 +376,14 @@ export const LandingPage: React.FC = () => {
                     <h2 className="section-title reveal">Interface moderna e intuitiva</h2>
                     <p className="section-subtitle reveal reveal-delay-1">Desenvolvido para oferecer a melhor experiência em qualquer dispositivo.</p>
 
-                    <div className="carousel-wrapper" onMouseEnter={stopAutoplay} onMouseLeave={startAutoplay}>
+                    <div
+                        className="carousel-wrapper"
+                        onMouseEnter={stopAutoplay}
+                        onMouseLeave={startAutoplay}
+                        onTouchStart={handleTouchStart}
+                        onTouchMove={handleTouchMove}
+                        onTouchEnd={handleTouchEnd}
+                    >
                         <div className="carousel-track" id="carouselTrack">
                             {carouselItems.map((item, idx) => (
                                 <div key={idx} className="carousel-item" data-state={getSlideState(idx)}>
