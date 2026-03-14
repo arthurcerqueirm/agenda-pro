@@ -220,7 +220,7 @@ export const LandingPage: React.FC = () => {
                         <h1>Pare de perder clientes.<br /><span className="highlight">Comece a usar a Agenda Pro.</span></h1>
                         <p className="hero-description">A agenda inteligente para empreendedores e autônomos que querem organizar, atender melhor e crescer — tudo em um só lugar.</p>
                         <div className="hero-actions">
-                            <button onClick={goToApp} className="btn btn-primary">Começar agora →</button>
+                            <button onClick={(e) => { e.preventDefault(); scrollToSection('precos'); }} className="btn btn-primary">Começar agora →</button>
                             <a href="#funcionalidades" className="btn btn-outline" onClick={(e) => { e.preventDefault(); scrollToSection('funcionalidades'); }}>Ver funcionalidades</a>
                         </div>
                         <div className="hero-trust">
