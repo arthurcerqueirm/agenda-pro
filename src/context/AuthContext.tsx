@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { Session, User } from '@supabase/supabase-js'
+import { Session, User, AuthResponse } from '@supabase/supabase-js'
 import { supabase } from '../utils/supabase'
 
 interface AuthContextType {
@@ -11,7 +11,7 @@ interface AuthContextType {
     updateProfileName: (name: string) => Promise<void>
     updateUserPassword: (password: string) => Promise<void>
     connectGoogleCalendar: () => Promise<void>
-    signUp: (email: string, password: string) => Promise<void>
+    signUp: (email: string, password: string) => Promise<AuthResponse>
     isAdmin: boolean
     signOut: () => Promise<void>
 }
@@ -155,11 +155,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signUp = async (email: string, password: string) => {
         await checkAuthorization(email)
-        const { error } = await supabase.auth.signUp({
+        const response = await supabase.auth.signUp({
             email,
             password,
         })
-        if (error) throw error
+        if (response.error) throw response.error
+        return response
     }
 
     const signOut = async () => {

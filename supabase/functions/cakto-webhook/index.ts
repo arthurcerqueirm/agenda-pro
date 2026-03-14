@@ -31,17 +31,8 @@ serve(async (req) => {
 
     // Provisionamento baseado em status de Pagamento
     if (['approved', 'paid', 'completed'].includes(status)) {
-       // 1. Tentar criar o usuário em auth.users para permitir o Reset Password depois
-       const randomPassword = crypto.randomUUID() + crypto.randomUUID(); // Senha ultra-segura descartável
-       
-       const { error: inviteError } = await supabaseClient.auth.admin.createUser({
-         email: email.toLowerCase(),
-         password: randomPassword,
-         email_confirm: true // Pula step de confirmação de e-mail pois a Cakto já valida o e-mail da compra
-       })
-       // Se o usuario já existir (error status 422), não tem problema, apenas ignoramos para permitir renovação
-
-       // 2. Liberar na nossa tabela de autorização (whitelist)
+       // Liberar apenas na nossa tabela de autorização (whitelist)
+       // O usuário será criado de fato na tela de /welcome via signUp
        const { error } = await supabaseClient
          .from('authorized_emails')
          .upsert({ 

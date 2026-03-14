@@ -61,6 +61,7 @@ export const SchedulingFlow: React.FC<SchedulingFlowProps> = ({ onComplete, preS
 
     const handleAddClientSuccess = (newClient: Profile) => {
         setClients([newClient, ...clients])
+        setIsAddingClient(false)
         handleClientSelect(newClient)
     }
 
