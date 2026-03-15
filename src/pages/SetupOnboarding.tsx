@@ -47,6 +47,7 @@ export const SetupOnboarding: React.FC = () => {
     const [name, setName] = useState('');
     const [startHour, setStartHour] = useState(8);
     const [endHour, setEndHour] = useState(18);
+    const [workingDays, setWorkingDays] = useState<number[]>([1, 2, 3, 4, 5, 6]);
     const [serviceName, setServiceName] = useState('');
     const [servicePrice, setServicePrice] = useState('');
     const [serviceDuration, setServiceDuration] = useState('60');
@@ -68,7 +69,7 @@ export const SetupOnboarding: React.FC = () => {
             await updateProfileName(name);
 
             // 2. Update Settings (localStorage)
-            updateSettings({ startHour, endHour });
+            updateSettings({ startHour, endHour, workingDays });
 
             // 3. Create First Service (Table name is 'massages' in DB)
             const { error: serviceError } = await supabase
@@ -178,6 +179,33 @@ export const SetupOnboarding: React.FC = () => {
                                                 />
                                                 <span className="ml-2 text-xl font-bold text-dark/30">h</span>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="setup-days-selection mt-8">
+                                        <label className="text-sm font-bold text-dark/40 uppercase block mb-3 text-center">Dias de Atendimento</label>
+                                        <div className="flex justify-between gap-1 max-w-sm mx-auto">
+                                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                                                const isActive = workingDays.includes(index);
+                                                return (
+                                                    <button
+                                                        key={index}
+                                                        onClick={() => {
+                                                            if (isActive) {
+                                                                setWorkingDays(workingDays.filter(d => d !== index));
+                                                            } else {
+                                                                setWorkingDays([...workingDays, index].sort());
+                                                            }
+                                                        }}
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs transition-all border ${isActive
+                                                                ? "bg-primary text-white border-primary shadow-sm scale-110"
+                                                                : "bg-white text-dark/30 border-dark/10"
+                                                            }`}
+                                                    >
+                                                        {day}
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     </div>
                                     {endHour <= startHour && (

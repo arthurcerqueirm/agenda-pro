@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw, AlertCircle } from 'lucide-react'
+import { Plus, ChevronLeft, ChevronRight, Calendar as CalendarIcon, User, Clock, Trash2, CalendarDays, RefreshCw, AlertCircle, Plane } from 'lucide-react'
 import { ConfirmModal } from '../components/ConfirmModal'
+import { useAuth } from '../context/AuthContext'
 import {
     format,
     addDays,
@@ -26,9 +27,11 @@ import { supabase } from '../utils/supabase'
 import { useSettings } from '../context/SettingsContext'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
-const fetchAppointments = async (viewDate: Date) => {
+const fetchAppointments = async (viewDate: Date, userId: string) => {
     const start = subDays(viewDate, 45)
     const end = addDays(viewDate, 45)
+
+    console.log('CalendarView: Fetching appointments for:', userId, 'Interval:', start.toISOString(), 'to', end.toISOString())
 
     const { data, error } = await supabase
         .from('appointments')
@@ -37,11 +40,17 @@ const fetchAppointments = async (viewDate: Date) => {
             client:client_id (name, phone),
             service:massage_id (name, duration_minutes, price)
         `)
+        .eq('user_id', userId)
         .gte('start_time', start.toISOString())
         .lte('start_time', end.toISOString())
         .order('start_time')
 
-    if (error) throw error
+    if (error) {
+        console.error('CalendarView: Error fetching appointments:', error)
+        throw error
+    }
+
+    console.log('CalendarView: Found appointments:', data?.length || 0)
     return data || []
 }
 
@@ -49,11 +58,6 @@ const fetchAppointments = async (viewDate: Date) => {
 
 export const CalendarView: React.FC = () => {
     const { settings } = useSettings()
-    const HOURS = Array.from(
-        { length: settings.endHour - settings.startHour + 1 },
-        (_, i) => settings.startHour + i
-    )
-
     const [viewDate, setViewDate] = useState(new Date())
     const [selectedDay, setSelectedDay] = useState<Date>(new Date())
     const [isScheduling, setIsScheduling] = useState(false)
@@ -66,10 +70,63 @@ export const CalendarView: React.FC = () => {
     const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
     const queryClient = useQueryClient()
+    const { user } = useAuth()
+
+    const weekStart = startOfWeek(viewDate, { locale: ptBR })
+    const days = React.useMemo(() => eachDayOfInterval({
+        start: weekStart, // Start Sunday
+        end: addDays(weekStart, 6)   // End Saturday
+    }).filter(day => settings.workingDays?.includes(day.getDay()) ?? true), [weekStart, settings.workingDays])
+
     const { data: appointments = [], isLoading, error: queryError } = useQuery({
-        queryKey: ['appointments', format(viewDate, 'yyyy-MM-dd')],
-        queryFn: () => fetchAppointments(viewDate),
+        queryKey: ['appointments', user?.id, format(viewDate, 'yyyy-MM-dd')],
+        queryFn: () => fetchAppointments(viewDate, user?.id || ''),
+        enabled: !!user?.id
     })
+
+    // Compute HOURS dynamically to strictly follow working hours and existing appointments
+    const HOURS = React.useMemo(() => {
+        // Start with a safe range but then find the tightest fit
+        let start = 24
+        let end = 0
+
+        // 1. Check working hours of visible days
+        if (window.innerWidth >= 768) {
+            // Desktop: Check all days in the week
+            days.forEach(d => {
+                const dayOfWeek = d.getDay()
+                const custom = settings.customHours?.[dayOfWeek]
+                const dStart = custom?.start ?? settings.startHour
+                const dEnd = custom?.end ?? settings.endHour
+                if (dStart < start) start = dStart
+                if (dEnd > end) end = dEnd
+            })
+        } else {
+            // Mobile: Check only the selected day
+            const dayOfWeek = selectedDay.getDay()
+            const custom = settings.customHours?.[dayOfWeek]
+            start = custom?.start ?? settings.startHour
+            end = custom?.end ?? settings.endHour
+        }
+
+        // 2. We no longer expand based on appointments. The grid is strictly bounded 
+        // by the professional's configured working hours to keep it clean.
+
+        // Safety fallback if no working hours found
+        if (start > end || start === 24) {
+            start = settings.startHour
+            end = settings.endHour
+        }
+
+        return Array.from({ length: Math.max(1, end - start + 1) }, (_, i) => start + i)
+    }, [settings.startHour, settings.endHour, settings.customHours, appointments, selectedDay, days])
+
+    useEffect(() => {
+        if (user) {
+            console.log('CalendarView: Logged in user ID:', user.id);
+            console.log('CalendarView: Settings:', settings);
+        }
+    }, [user, settings]);
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
@@ -108,6 +165,19 @@ export const CalendarView: React.FC = () => {
         setSelectedDay(newDate)
     }
 
+    // If selectedDay is not in workingDays (e.g. after settings change), move to next available
+    useEffect(() => {
+        if (settings.workingDays && !settings.workingDays.includes(selectedDay.getDay())) {
+            let nextWorking = addDays(selectedDay, 1)
+            let count = 0
+            while (!settings.workingDays.includes(nextWorking.getDay()) && count < 7) {
+                nextWorking = addDays(nextWorking, 1)
+                count++
+            }
+            setSelectedDay(nextWorking)
+        }
+    }, [settings.workingDays])
+
     const onTouchStart = (e: React.TouchEvent) => {
         setTouchEnd(null)
         setTouchStart(e.targetTouches[0].clientX)
@@ -118,14 +188,24 @@ export const CalendarView: React.FC = () => {
     }
 
     const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return
+        if (!touchStart || !touchEnd || !settings.workingDays) return
         const distance = touchStart - touchEnd
 
         if (distance > 50) {
-            setSelectedDay(prev => addDays(prev, 1))
+            // Find next working day
+            let nextDay = addDays(selectedDay, 1)
+            while (!settings.workingDays.includes(nextDay.getDay())) {
+                nextDay = addDays(nextDay, 1)
+            }
+            setSelectedDay(nextDay)
         }
         if (distance < -50) {
-            setSelectedDay(prev => subDays(prev, 1))
+            // Find previous working day
+            let prevDay = subDays(selectedDay, 1)
+            while (!settings.workingDays.includes(prevDay.getDay())) {
+                prevDay = subDays(prevDay, 1)
+            }
+            setSelectedDay(prevDay)
         }
     }
 
@@ -134,20 +214,51 @@ export const CalendarView: React.FC = () => {
         deleteMutation.mutate(selectedAppointment.id)
     }
 
-    const weekStart = startOfWeek(viewDate, { locale: ptBR })
-    const days = eachDayOfInterval({
-        start: addDays(weekStart, 1), // Start Monday
-        end: addDays(weekStart, 6)   // End Saturday
-    })
+    // Fallback if no days are visible in this specific range (unlikely but safe)
+    if (days.length === 0 && settings.workingDays?.length > 0) {
+        // Adjust logic if needed or just show the days as is
+    }
+
+    // If selectedDay is not in workingDays (e.g. after settings change), move to next available
+    useEffect(() => {
+        if (settings.workingDays && !settings.workingDays.includes(selectedDay.getDay())) {
+            let nextWorking = addDays(selectedDay, 1)
+            let count = 0
+            while (!settings.workingDays.includes(nextWorking.getDay()) && count < 7) {
+                nextWorking = addDays(nextWorking, 1)
+                count++
+            }
+            setSelectedDay(nextWorking)
+        }
+    }, [settings.workingDays])
 
     const getAppointmentForSlot = (day: Date, hour: number) => {
-        const slotTime = setMinutes(setHours(day, hour), 0)
+        const slotTimeStart = setMinutes(setHours(day, hour), 0)
+        const slotTimeEnd = addMinutes(slotTimeStart, 59)
+
         return appointments.find((apt: any) => {
             const aptStart = new Date(apt.start_time)
             const aptEnd = new Date(apt.end_time)
-            return isWithinInterval(slotTime, { start: aptStart, end: addMinutes(aptEnd, -1) })
+
+            // Check if appointment overlaps with this hour slot
+            // Use a small buffer (1 minute) to avoid "leaks" from sub-minute precision
+            const buffer = 60000
+            return (
+                (aptStart >= slotTimeStart && aptStart <= slotTimeEnd) || // Starts in this hour
+                (aptStart < slotTimeStart && aptEnd.getTime() > (slotTimeStart.getTime() + buffer)) // Spans significantly into this hour
+            )
         })
     }
+
+    const hasUpcomingInNextWeek = React.useMemo(() => {
+        if (!appointments.length) return false
+        const nextWeekStart = addDays(viewDate, 7)
+        const nextWeekEnd = addDays(nextWeekStart, 7)
+        return appointments.some((apt: any) => {
+            const d = new Date(apt.start_time)
+            return isWithinInterval(d, { start: nextWeekStart, end: nextWeekEnd })
+        })
+    }, [appointments, viewDate])
 
     return (
         <div className="space-y-6">
@@ -189,22 +300,23 @@ export const CalendarView: React.FC = () => {
                 {eachDayOfInterval({
                     start: subDays(new Date(), 30),
                     end: addDays(new Date(), 90)
-                }).map((day) => (
-                    <button
-                        key={day.toString()}
-                        id={`day-${format(day, 'yyyy-MM-dd')}`}
-                        onClick={() => setSelectedDay(day)}
-                        className={cn(
-                            "flex flex-col items-center min-w-[64px] py-3 rounded-2xl transition-all",
-                            isSameDay(day, selectedDay)
-                                ? "bg-primary text-white shadow-lg scale-105"
-                                : "bg-white text-dark/40 shadow-ios"
-                        )}
-                    >
-                        <span className="text-[10px] font-bold uppercase mb-1">{format(day, 'eee', { locale: ptBR })}</span>
-                        <span className="text-lg font-display font-bold">{format(day, 'd')}</span>
-                    </button>
-                ))}
+                }).filter(day => settings.workingDays?.includes(day.getDay()) ?? true)
+                    .map((day) => (
+                        <button
+                            key={day.toString()}
+                            id={`day-${format(day, 'yyyy-MM-dd')}`}
+                            onClick={() => setSelectedDay(day)}
+                            className={cn(
+                                "flex flex-col items-center min-w-[64px] py-3 rounded-2xl transition-all",
+                                isSameDay(day, selectedDay)
+                                    ? "bg-primary text-white shadow-lg scale-105"
+                                    : "bg-white text-dark/40 shadow-ios"
+                            )}
+                        >
+                            <span className="text-[10px] font-bold uppercase mb-1">{format(day, 'eee', { locale: ptBR })}</span>
+                            <span className="text-lg font-display font-bold">{format(day, 'd')}</span>
+                        </button>
+                    ))}
             </div>
 
             {/* Agenda Grid */}
@@ -283,37 +395,83 @@ export const CalendarView: React.FC = () => {
                                     {/* Desktop Slots */}
                                     {days.map((day) => {
                                         const apt = getAppointmentForSlot(day, hour)
-                                        const isSlotStart = apt && isSameDay(new Date(apt.start_time), day) && new Date(apt.start_time).getHours() === hour
-
                                         return (
                                             <td
                                                 key={`desktop-${day}-${hour}`}
                                                 className={cn(
                                                     "relative p-1 border-r border-surface-neutral/10 last:border-0 h-24 md:h-16 hidden md:table-cell transition-colors",
-                                                    !apt && "hover:bg-surface-light/50 cursor-pointer"
+                                                    !apt && "hover:bg-surface-light/50"
                                                 )}
                                                 onClick={() => {
                                                     if (apt) {
                                                         setSelectedAppointment(apt)
                                                         setIsManaging(true)
-                                                    } else {
-                                                        setSelectedSlot(setMinutes(setHours(day, hour), 0))
-                                                        setIsScheduling(true)
                                                     }
                                                 }}
                                             >
-                                                {apt ? (
-                                                    isSlotStart && (
-                                                        <div className="absolute inset-x-1 top-1 bottom-1 bg-primary/20 border-l-4 border-l-primary rounded-xl p-2 z-10 animate-in fade-in zoom-in-95 overflow-hidden">
-                                                            <h4 className="text-[10px] font-bold text-primary-dark truncate">{apt.client?.name}</h4>
-                                                            <p className="text-[9px] text-primary/80 font-medium truncate">{apt.service?.name}</p>
+                                                {(() => {
+                                                    const slotStart = setMinutes(setHours(day, hour), 0)
+                                                    const isAbsent = settings.absences?.some(abs => {
+                                                        const start = new Date(abs.start)
+                                                        const end = new Date(abs.end)
+                                                        return slotStart >= start && slotStart < end
+                                                    })
+
+                                                    if (isAbsent) return (
+                                                        <div className="absolute inset-0 bg-primary/5 flex items-center justify-center cursor-not-allowed group-hover:bg-primary/10 transition-colors border-l-4 border-l-primary/20">
+                                                            <div className="flex flex-col items-center opacity-40">
+                                                                <Plane size={12} className="text-primary" />
+                                                                <span className="text-[8px] font-bold uppercase mt-1">Ausente</span>
+                                                            </div>
                                                         </div>
                                                     )
-                                                ) : (
-                                                    <div className="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                                        <Plus size={14} className="text-primary" />
-                                                    </div>
-                                                )}
+
+                                                    if (apt) return (
+                                                        <div className={cn(
+                                                            "absolute inset-x-1 top-1 bottom-1 border-l-4 rounded-xl p-2 z-10 animate-in fade-in zoom-in-95 overflow-hidden transition-all",
+                                                            new Date(apt.start_time).getHours() === hour
+                                                                ? "bg-primary/20 border-l-primary"
+                                                                : "bg-primary/5 border-l-primary/30 opacity-40 hover:opacity-100"
+                                                        )}>
+                                                            {new Date(apt.start_time).getHours() === hour && (
+                                                                <>
+                                                                    <h4 className="text-[10px] font-bold text-primary-dark truncate">{apt.client?.name || 'Cliente s/ nome'}</h4>
+                                                                    <p className="text-[9px] text-primary/80 font-medium truncate">{apt.service?.name}</p>
+                                                                </>
+                                                            )}
+                                                            {new Date(apt.start_time).getHours() < hour && (
+                                                                <div className="h-full flex items-center justify-center">
+                                                                    <span className="text-[8px] font-bold uppercase tracking-tighter text-primary/40 rotate-90 whitespace-nowrap">Continuação</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )
+
+                                                    const dCustom = settings.customHours?.[day.getDay()]
+                                                    const isOutside = dCustom ? (hour < dCustom.start || hour >= dCustom.end) : (hour < settings.startHour || hour >= settings.endHour)
+
+                                                    if (isOutside) return (
+                                                        <div className="absolute inset-0 bg-surface-neutral/10 flex items-center justify-center cursor-not-allowed group-hover:bg-surface-neutral/20 transition-colors">
+                                                            <div className="flex flex-col items-center opacity-30">
+                                                                <Clock size={12} className="text-dark/40" />
+                                                                <span className="text-[8px] font-bold uppercase mt-1">Fechado</span>
+                                                            </div>
+                                                        </div>
+                                                    )
+
+                                                    return (
+                                                        <div
+                                                            className="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setSelectedSlot(slotStart)
+                                                                setIsScheduling(true)
+                                                            }}
+                                                        >
+                                                            <Plus size={14} className="text-primary" />
+                                                        </div>
+                                                    )
+                                                })()}
                                             </td>
                                         )
                                     })}
@@ -327,26 +485,73 @@ export const CalendarView: React.FC = () => {
                                                 setSelectedAppointment(apt)
                                                 setIsManaging(true)
                                             } else {
-                                                setSelectedSlot(setMinutes(setHours(selectedDay, hour), 0))
-                                                setIsScheduling(true)
+                                                const slotStart = setMinutes(setHours(selectedDay, hour), 0)
+                                                const isAbsent = settings.absences?.some(abs => {
+                                                    const start = new Date(abs.start)
+                                                    const end = new Date(abs.end)
+                                                    return slotStart >= start && slotStart < end
+                                                })
+
+                                                const dCustom = settings.customHours?.[selectedDay.getDay()]
+                                                const isOutside = dCustom ? (hour < dCustom.start || hour >= dCustom.end) : (hour < settings.startHour || hour >= settings.endHour)
+
+                                                if (!isOutside && !isAbsent) {
+                                                    setSelectedSlot(slotStart)
+                                                    setIsScheduling(true)
+                                                }
                                             }
                                         }}
                                     >
                                         {(() => {
                                             const apt = getAppointmentForSlot(selectedDay, hour)
-                                            const isSlotStart = apt && isSameDay(new Date(apt.start_time), selectedDay) && new Date(apt.start_time).getHours() === hour
+                                            const slotStart = setMinutes(setHours(selectedDay, hour), 0)
+                                            const isAbsent = settings.absences?.some(abs => {
+                                                const start = new Date(abs.start)
+                                                const end = new Date(abs.end)
+                                                return slotStart >= start && slotStart < end
+                                            })
+
+                                            if (isAbsent) return (
+                                                <div className="absolute inset-0 bg-primary/5 rounded-2xl flex flex-col items-center justify-center border-2 border-primary/20 shadow-inner">
+                                                    <Plane size={24} className="text-primary/40" />
+                                                    <span className="text-[10px] font-bold uppercase mt-1 text-primary/60">Ausente</span>
+                                                </div>
+                                            )
 
                                             if (apt) {
-                                                return isSlotStart ? (
-                                                    <div className="absolute inset-2 bg-primary/10 border-l-4 border-l-primary rounded-2xl p-3 shadow-sm flex flex-col justify-center">
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <h4 className="font-bold text-primary-dark">{apt.client?.name}</h4>
-                                                            <span className="text-[10px] bg-primary/20 text-primary-dark px-2 py-0.5 rounded-full">Ocupado</span>
-                                                        </div>
-                                                        <p className="text-xs text-primary/70 font-medium">{apt.service?.name}</p>
+                                                const aptDate = new Date(apt.start_time)
+                                                return (
+                                                    <div className={cn(
+                                                        "absolute inset-2 border-l-4 rounded-2xl p-3 shadow-sm flex flex-col justify-center transition-all",
+                                                        aptDate.getHours() === hour ? "bg-primary/10 border-l-primary" : "bg-primary/5 border-l-primary/20 opacity-60"
+                                                    )}>
+                                                        {aptDate.getHours() === hour ? (
+                                                            <>
+                                                                <div className="flex items-center justify-between mb-1">
+                                                                    <h4 className="font-bold text-primary-dark">{apt.client?.name || 'Cliente'}</h4>
+                                                                    <span className="text-[10px] bg-primary/20 text-primary-dark px-2 py-0.5 rounded-full font-bold">Início</span>
+                                                                </div>
+                                                                <p className="text-xs text-primary/70 font-medium">{apt.service?.name}</p>
+                                                            </>
+                                                        ) : (
+                                                            <div className="flex items-center space-x-2">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
+                                                                <span className="text-[10px] font-bold text-primary/40 uppercase tracking-widest">Continuação...</span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                ) : null
+                                                )
                                             }
+
+                                            const dCustom = settings.customHours?.[selectedDay.getDay()]
+                                            const isOutside = dCustom ? (hour < dCustom.start || hour >= dCustom.end) : (hour < settings.startHour || hour >= settings.endHour)
+
+                                            if (isOutside) return (
+                                                <div className="absolute inset-0 bg-surface-neutral/10 rounded-2xl flex flex-col items-center justify-center opacity-30 shadow-inner">
+                                                    <Clock size={20} className="text-dark/40" />
+                                                    <span className="text-[10px] font-bold uppercase mt-1">Fechado</span>
+                                                </div>
+                                            )
 
                                             return (
                                                 <div className="h-full w-full border-2 border-dashed border-surface-neutral/30 rounded-2xl flex items-center justify-center">

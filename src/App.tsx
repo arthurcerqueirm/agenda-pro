@@ -17,6 +17,7 @@ import { WelcomeOnboarding } from './pages/WelcomeOnboarding'
 import { SetupOnboarding } from './pages/SetupOnboarding'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { UserTour } from './components/UserTour'
+import { PublicBooking } from './pages/PublicBooking'
 
 type Tab = 'agenda' | 'clients' | 'finance' | 'admin'
 
@@ -66,6 +67,7 @@ function App() {
     const isWelcome = path.startsWith('/welcome')
     const isSetup = path.startsWith('/setup')
     const isApp = path.startsWith('/app')
+    const isBooking = path.startsWith('/b/')
 
     // Redirect logged-in users from landing to /app
     useEffect(() => {
@@ -83,6 +85,12 @@ function App() {
     if (isWelcome) return <WelcomeOnboarding />
 
     if (isSetup) return <SetupOnboarding />
+
+    // /b/:userId -> Public Booking Page
+    if (isBooking) {
+        const userId = path.split('/')[2]
+        return <PublicBooking userId={userId} />
+    }
 
     // /app -> main SaaS app
     if (isApp) return (

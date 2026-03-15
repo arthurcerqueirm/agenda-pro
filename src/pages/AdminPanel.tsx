@@ -1,13 +1,16 @@
 import React, { useState } from 'react'
-import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar, Check } from 'lucide-react'
+import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar, Check, Link as LinkIcon, Share2, Plus, Plane, Trash2, Clock } from 'lucide-react'
+import { format } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 import { useAuth } from '../context/AuthContext'
 import { ServiceManager } from './ServiceManager'
 import { useSettings } from '../context/SettingsContext'
 import { ConfirmModal } from '../components/ConfirmModal'
 import { Button } from '../components/Button'
 import { SuperAdminDashboard } from './SuperAdmin/SuperAdminDashboard'
+import { cn } from '../utils/cn'
 
-type AdminView = 'main' | 'services' | 'business-hours' | 'profile' | 'super-admin'
+type AdminView = 'main' | 'services' | 'business-hours' | 'absence' | 'profile' | 'super-admin'
 
 export const AdminPanel: React.FC = () => {
     const { signOut, connectGoogleCalendar, session, user, updateProfileName, updateUserPassword, isAdmin } = useAuth()
@@ -16,13 +19,31 @@ export const AdminPanel: React.FC = () => {
 
     const [tempStart, setTempStart] = useState(settings.startHour.toString())
     const [tempEnd, setTempEnd] = useState(settings.endHour.toString())
+    const [tempWorkingDays, setTempWorkingDays] = useState<number[]>(settings.workingDays)
+    const [tempCustomHours, setTempCustomHours] = useState<Record<number, { start: number, end: number }>>(settings.customHours)
+    const [tempAbsences, setTempAbsences] = useState(settings.absences.filter(a => new Date(a.end) > new Date()))
+    const [newAbsence, setNewAbsence] = useState({
+        startDate: format(new Date(), 'yyyy-MM-dd'),
+        startHour: '08',
+        endDate: format(new Date(), 'yyyy-MM-dd'),
+        endHour: '18',
+        reason: ''
+    })
 
     const [profileName, setProfileName] = useState(user?.user_metadata?.full_name || '')
     const [newPassword, setNewPassword] = useState('')
     const [profileLoading, setProfileLoading] = useState(false)
     const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false)
+    const [copySuccess, setCopySuccess] = useState(false)
 
+    const bookingUrl = `${window.location.origin}/b/${user?.id}`
     const hasGoogleToken = !!session?.provider_token || !!sessionStorage.getItem('google_provider_token')
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(bookingUrl)
+        setCopySuccess(true)
+        setTimeout(() => setCopySuccess(false), 2000)
+    }
 
     const handleLogout = async () => {
         setIsLogoutConfirmOpen(true)
@@ -45,6 +66,7 @@ export const AdminPanel: React.FC = () => {
                     onClick: connectGoogleCalendar
                 },
                 { label: 'Horário de Funcionamento', icon: Shield, color: 'text-dark/60', onClick: () => setCurrentView('business-hours') },
+                { label: 'Modo Ausente', icon: Plane, color: 'text-orange-500', onClick: () => setCurrentView('absence') },
             ]
         },
         {
@@ -114,20 +136,290 @@ export const AdminPanel: React.FC = () => {
                     </div>
                 </div>
 
+                <div className="ios-card space-y-4">
+                    <div className="space-y-3">
+                        <label className="text-xs font-bold text-dark/60 uppercase">Dias de Atendimento</label>
+                        <div className="flex justify-between gap-1">
+                            {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                                const isActive = tempWorkingDays.includes(index);
+                                return (
+                                    <button
+                                        key={index}
+                                        onClick={() => {
+                                            if (isActive) {
+                                                setTempWorkingDays(tempWorkingDays.filter(d => d !== index));
+                                            } else {
+                                                setTempWorkingDays([...tempWorkingDays, index].sort());
+                                            }
+                                        }}
+                                        className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs transition-all border",
+                                            isActive
+                                                ? "bg-primary text-white border-primary shadow-sm"
+                                                : "bg-surface-light text-dark/30 border-surface-neutral/50"
+                                        )}
+                                    >
+                                        {day}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-[10px] text-dark/30 italic">Selecione os dias da semana em que você realiza atendimentos.</p>
+                    </div>
+                </div>
+
+                <div className="ios-card space-y-4">
+                    <label className="text-xs font-bold text-dark/60 uppercase">Personalizar Horários por Dia</label>
+                    <div className="space-y-3">
+                        {tempWorkingDays.map(dayIndex => {
+                            const custom = tempCustomHours[dayIndex];
+                            const dayName = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][dayIndex];
+
+                            return (
+                                <div key={dayIndex} className="p-4 bg-surface-light rounded-2xl border border-surface-neutral/30 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-bold text-dark">{dayName}</span>
+                                        <button
+                                            onClick={() => {
+                                                if (custom) {
+                                                    const newCustom = { ...tempCustomHours };
+                                                    delete newCustom[dayIndex];
+                                                    setTempCustomHours(newCustom);
+                                                } else {
+                                                    setTempCustomHours({
+                                                        ...tempCustomHours,
+                                                        [dayIndex]: { start: parseInt(tempStart) || 8, end: parseInt(tempEnd) || 18 }
+                                                    });
+                                                }
+                                            }}
+                                            className={cn(
+                                                "text-[10px] font-bold uppercase px-3 py-1 rounded-full transition-all",
+                                                custom ? "bg-primary/10 text-primary" : "bg-dark/5 text-dark/40"
+                                            )}
+                                        >
+                                            {custom ? 'Personalizado' : 'Horário Padrão'}
+                                        </button>
+                                    </div>
+
+                                    {custom && (
+                                        <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1">
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-dark/40 uppercase">Início</label>
+                                                <input
+                                                    type="number"
+                                                    value={custom.start}
+                                                    onChange={(e) => setTempCustomHours({
+                                                        ...tempCustomHours,
+                                                        [dayIndex]: { ...custom, start: parseInt(e.target.value) || 0 }
+                                                    })}
+                                                    className="ios-input py-2 text-sm"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[9px] font-bold text-dark/40 uppercase">Fim</label>
+                                                <input
+                                                    type="number"
+                                                    value={custom.end}
+                                                    onChange={(e) => setTempCustomHours({
+                                                        ...tempCustomHours,
+                                                        [dayIndex]: { ...custom, end: parseInt(e.target.value) || 0 }
+                                                    })}
+                                                    className="ios-input py-2 text-sm"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {tempWorkingDays.length === 0 && (
+                            <p className="text-center text-xs text-dark/30 italic py-4">Ative alguns dias de atendimento para personalizar os horários.</p>
+                        )}
+                    </div>
+                </div>
+
                 <Button
                     variant="primary"
                     className="w-full"
                     onClick={() => {
                         updateSettings({
                             startHour: parseInt(tempStart) || 0,
-                            endHour: parseInt(tempEnd) || 23
+                            endHour: parseInt(tempEnd) || 23,
+                            workingDays: tempWorkingDays,
+                            customHours: tempCustomHours,
+                            absences: tempAbsences
                         })
-                        alert('Horário de funcionamento atualizado!')
+                        alert('Configurações de funcionamento atualizadas!')
                         setCurrentView('main')
                     }}
                 >
-                    Salvar Horários
+                    Salvar Configurações
                 </Button>
+            </div>
+        )
+    }
+
+    if (currentView === 'absence') {
+        return (
+            <div className="space-y-6">
+                <header className="flex items-center space-x-4">
+                    <button
+                        onClick={() => setCurrentView('main')}
+                        className="w-10 h-10 bg-white shadow-ios rounded-full flex items-center justify-center text-dark/40 active:scale-90 transition-transform"
+                    >
+                        <ChevronRight size={20} className="rotate-180" />
+                    </button>
+                    <div>
+                        <h2 className="text-2xl font-display font-bold text-dark">Modo Ausente</h2>
+                        <p className="text-dark/40 text-sm font-medium">Gerencie suas folgas e ausências</p>
+                    </div>
+                </header>
+
+                <div className="ios-card space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <Plane size={18} className="text-primary" />
+                        <label className="text-xs font-bold text-dark/60 uppercase">Adicionar Nova Ausência</label>
+                    </div>
+
+                    <div className="space-y-6 bg-surface-light p-5 rounded-[2.5rem] border border-surface-neutral/30 shadow-inner">
+                        <div className="space-y-4">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold text-dark/40 uppercase tracking-widest pl-1">Início da Ausência</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-primary opacity-40" size={16} />
+                                        <input
+                                            type="date"
+                                            value={newAbsence.startDate}
+                                            onChange={(e) => setNewAbsence({ ...newAbsence, startDate: e.target.value })}
+                                            className="ios-input pl-11 py-3 text-xs w-full bg-white border-none shadow-sm font-bold"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary opacity-40" size={16} />
+                                        <select
+                                            value={newAbsence.startHour}
+                                            onChange={(e) => setNewAbsence({ ...newAbsence, startHour: e.target.value })}
+                                            className="ios-input pl-11 py-3 text-xs w-full bg-white border-none shadow-sm font-bold appearance-none"
+                                        >
+                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                const h = i.toString().padStart(2, '0')
+                                                return <option key={h} value={h}>{h}:00</option>
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold text-dark/40 uppercase tracking-widest pl-1">Fim da Ausência</label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div className="relative">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-primary opacity-40" size={16} />
+                                        <input
+                                            type="date"
+                                            value={newAbsence.endDate}
+                                            onChange={(e) => setNewAbsence({ ...newAbsence, endDate: e.target.value })}
+                                            className="ios-input pl-11 py-3 text-xs w-full bg-white border-none shadow-sm font-bold"
+                                        />
+                                    </div>
+                                    <div className="relative">
+                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-primary opacity-40" size={16} />
+                                        <select
+                                            value={newAbsence.endHour}
+                                            onChange={(e) => setNewAbsence({ ...newAbsence, endHour: e.target.value })}
+                                            className="ios-input pl-11 py-3 text-xs w-full bg-white border-none shadow-sm font-bold appearance-none"
+                                        >
+                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                const h = i.toString().padStart(2, '0')
+                                                return <option key={h} value={h}>{h}:00</option>
+                                            })}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <Button
+                                variant="primary"
+                                className="w-full text-xs font-bold py-4 h-auto shadow-ios mt-4 bg-gradient-to-r from-primary to-primary-dark rounded-2xl"
+                                onClick={() => {
+                                    const startStr = `${newAbsence.startDate}T${newAbsence.startHour}:00:00`
+                                    const endStr = `${newAbsence.endDate}T${newAbsence.endHour}:00:00`
+
+                                    const startDate = new Date(startStr)
+                                    const endDate = new Date(endStr)
+
+                                    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return alert('Selecione datas válidas.')
+                                    if (startDate >= endDate) return alert('O fim deve ser posterior ao início.')
+
+                                    const id = Math.random().toString(36).substr(2, 9)
+                                    const updatedAbsences = [...tempAbsences, { id, start: startStr, end: endStr }].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+
+                                    setTempAbsences(updatedAbsences)
+                                    updateSettings({ absences: updatedAbsences })
+                                    setNewAbsence({ ...newAbsence, reason: '' })
+                                    alert('Folga agendada com sucesso! ✈️')
+                                }}
+                            >
+                                <Plus size={18} className="mr-2" /> Agendar Ausência
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+
+                {tempAbsences.length > 0 && (
+                    <div className="space-y-4">
+                        <label className="text-[11px] font-bold text-dark/30 uppercase tracking-[0.2em] px-5">Agenda de Ausências</label>
+                        <div className="space-y-3 px-1">
+                            {tempAbsences.map(absence => (
+                                <div key={absence.id} className="ios-card group flex items-center justify-between p-5 bg-white shadow-ios border-none hover:bg-surface-light transition-colors">
+                                    <div className="flex items-center space-x-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 shadow-sm group-hover:scale-110 transition-transform">
+                                            <Plane size={24} />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center space-x-2">
+                                                <span className="text-sm font-bold text-dark">
+                                                    {format(new Date(absence.start), "dd 'de' MMM", { locale: ptBR })}
+                                                </span>
+                                                <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-extrabold uppercase tracking-tighter">
+                                                    {format(new Date(absence.start), 'HH:mm')}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center space-x-1 mt-0.5 opacity-40">
+                                                <ChevronRight size={10} className="text-dark" />
+                                                <span className="text-[10px] text-dark font-medium">
+                                                    Até {format(new Date(absence.end), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const updated = tempAbsences.filter(a => a.id !== absence.id)
+                                            setTempAbsences(updated)
+                                            updateSettings({ absences: updated })
+                                        }}
+                                        className="w-12 h-12 rounded-[1.2rem] bg-red-50 flex items-center justify-center text-red-500 active:scale-90 transition-all hover:bg-red-500 hover:text-white shadow-sm"
+                                    >
+                                        <Trash2 size={20} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {tempAbsences.length === 0 && (
+                    <div className="ios-card bg-surface-light border-dashed border-surface-neutral/50 p-10 flex flex-col items-center justify-center text-center space-y-3">
+                        <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-dark/10">
+                            <Plane size={32} />
+                        </div>
+                        <p className="text-xs text-dark/40 font-medium leading-relaxed">
+                            Você não tem ausências programadas.<br />Adicione uma acima se precisar bloquear sua agenda.
+                        </p>
+                    </div>
+                )}
             </div>
         )
     }
@@ -234,6 +526,34 @@ export const AdminPanel: React.FC = () => {
                     </div>
                     <ChevronRight size={20} className="text-white/50" />
                 </div>
+            </div>
+
+            {/* Booking Link Card */}
+            <div className="ios-card bg-white border-primary/20 border-2 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                        <LinkIcon size={18} className="text-primary" />
+                        <h4 className="text-sm font-bold text-dark">Link de Agendamento Online</h4>
+                    </div>
+                    {copySuccess && (
+                        <span className="text-[10px] font-bold text-success-dark animate-in fade-in zoom-in">Copiado!</span>
+                    )}
+                </div>
+                <div className="flex items-center space-x-2 bg-surface-light p-3 rounded-xl border border-surface-neutral-300">
+                    <input
+                        type="text"
+                        readOnly
+                        value={bookingUrl}
+                        className="bg-transparent text-[10px] font-mono text-dark/60 flex-1 truncate outline-none"
+                    />
+                    <button
+                        onClick={handleCopyLink}
+                        className="bg-primary text-white p-2 rounded-lg active:scale-95 transition-transform"
+                    >
+                        {copySuccess ? <Check size={16} /> : <Share2 size={16} />}
+                    </button>
+                </div>
+                <p className="mt-3 text-[10px] text-dark/30 font-medium">Compartilhe este link com seus clientes para que eles agendem direto pelo navegador.</p>
             </div>
 
             {/* Notifications Card */}
