@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Sparkles, Calendar, Users, Settings, DollarSign, Package, Clock } from 'lucide-react';
+import { X, ChevronRight, Sparkles, Calendar, Users, Settings, DollarSign, Package, Clock, Plane, Link as LinkIcon } from 'lucide-react';
 import './UserTour.css';
 
 interface TourStep {
@@ -53,12 +53,28 @@ const tourSteps: TourStep[] = [
         icon: <Settings className="text-primary" size={20} />
     },
     {
+        targetId: 'tour-booking-link',
+        title: 'Seu Link de Agendamento',
+        description: 'Este é o link que você envia para suas clientes. Elas podem agendar sozinhas sem você precisar fazer nada!',
+        position: 'bottom',
+        tab: 'admin',
+        icon: <LinkIcon className="text-primary" size={20} />
+    },
+    {
         targetId: 'tour-manage-hours',
         title: 'Horário de Trabalho',
         description: 'Defina aqui o seu horário de início e fim de expediente para que a agenda fique organizada.',
         position: 'bottom',
         tab: 'admin',
         icon: <Clock className="text-primary" size={20} />
+    },
+    {
+        targetId: 'tour-absence-mode',
+        title: 'Modo Ausente',
+        description: 'Vai tirar férias ou precisa bloquear um horário específico? Agende suas ausências aqui para fechar a agenda automaticamente.',
+        position: 'bottom',
+        tab: 'admin',
+        icon: <Plane className="text-primary" size={20} />
     },
     {
         targetId: 'tour-manage-services',

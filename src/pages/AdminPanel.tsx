@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar, Check, Link as LinkIcon, Share2, Plus, Plane, Trash2, Clock } from 'lucide-react'
+import { Info, Bell, BellOff, Shield, LogOut, ChevronRight, Briefcase, Calendar, Check, Link as LinkIcon, Share2, Plus, Plane, Trash2, Clock, Sparkles } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useAuth } from '../context/AuthContext'
@@ -67,6 +67,20 @@ export const AdminPanel: React.FC = () => {
                 },
                 { label: 'Horário de Funcionamento', icon: Shield, color: 'text-dark/60', onClick: () => setCurrentView('business-hours') },
                 { label: 'Modo Ausente', icon: Plane, color: 'text-orange-500', onClick: () => setCurrentView('absence') },
+            ]
+        },
+        {
+            title: 'Ajuda e Suporte',
+            items: [
+                {
+                    label: 'Reiniciar Tour Interativo',
+                    icon: Sparkles,
+                    color: 'text-yellow-500',
+                    onClick: () => {
+                        localStorage.removeItem('hasSeenTour');
+                        window.location.reload();
+                    }
+                },
             ]
         },
         {
@@ -529,7 +543,7 @@ export const AdminPanel: React.FC = () => {
             </div>
 
             {/* Booking Link Card */}
-            <div className="ios-card bg-white border-primary/20 border-2 mb-8">
+            <div id="tour-booking-link" className="ios-card bg-white border-primary/20 border-2 mb-8">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
                         <LinkIcon size={18} className="text-primary" />
@@ -657,7 +671,7 @@ export const AdminPanel: React.FC = () => {
                             {group.items.map((item, j) => (
                                 <button
                                     key={j}
-                                    id={item.label === 'Gestão de Serviços' ? 'tour-manage-services' : item.label === 'Horário de Funcionamento' ? 'tour-manage-hours' : undefined}
+                                    id={item.label === 'Gestão de Serviços' ? 'tour-manage-services' : item.label === 'Horário de Funcionamento' ? 'tour-manage-hours' : item.label === 'Modo Ausente' ? 'tour-absence-mode' : undefined}
                                     onClick={item.onClick}
                                     className="w-full px-5 py-4 flex items-center justify-between active:bg-surface-light transition-colors group"
                                 >
